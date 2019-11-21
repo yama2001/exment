@@ -8,6 +8,7 @@ use Encore\Admin\Middleware as AdminMiddleware;
 use Encore\Admin\AdminServiceProvider as ServiceProvider;
 use Exceedone\Exment\Providers as ExmentProviders;
 use Exceedone\Exment\Model\Plugin;
+use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Services\Plugin\PluginPublicBase;
 use Exceedone\Exment\Enums\Driver;
 use Exceedone\Exment\Enums\ApiScope;
@@ -78,6 +79,7 @@ class ExmentServiceProvider extends ServiceProvider
         'admin.initialize'  => \Exceedone\Exment\Middleware\Initialize::class,
         'admin.morph'  => \Exceedone\Exment\Middleware\Morph::class,
         'adminapi.auth'       => \Exceedone\Exment\Middleware\AuthenticateApi::class,
+        'admin.browser'  => \Exceedone\Exment\Middleware\Browser::class,
 
         'admin.pjax'       => AdminMiddleware\Pjax::class,
         'admin.permission' => AdminMiddleware\Permission::class,
@@ -86,6 +88,10 @@ class ExmentServiceProvider extends ServiceProvider
         'admin.session'    => AdminMiddleware\Session::class,
 
         'scope' => \Exceedone\Exment\Middleware\CheckForAnyScope::class,
+
+        'laravel-page-speed.space' => \Exceedone\Exment\Middleware\CollapseWhitespace::class,
+        'laravel-page-speed.jscomments' => \Exceedone\Exment\Middleware\InlineJsRemoveComments::class,
+        'laravel-page-speed.comments' => \RenatoMarinho\LaravelPageSpeed\Middleware\RemoveComments::class,
     ];
 
     /**
@@ -95,12 +101,16 @@ class ExmentServiceProvider extends ServiceProvider
      */
     protected $middlewareGroups = [
         'admin' => [
+            'admin.browser',
             'admin.initialize',
             'admin.auth',
             'admin.auth-2factor',
             'admin.password-limit',
             'admin.morph',
             'admin.bootstrap2',
+            'laravel-page-speed.space',
+            'laravel-page-speed.jscomments',
+            'laravel-page-speed.comments',
             'admin.pjax',
             'admin.log',
             'admin.bootstrap',
@@ -108,6 +118,7 @@ class ExmentServiceProvider extends ServiceProvider
             'admin.session',
         ],
         'admin_anonymous' => [
+            'admin.browser',
             'admin.initialize',
             'admin.morph',
             'admin.bootstrap2',
@@ -118,6 +129,7 @@ class ExmentServiceProvider extends ServiceProvider
             'admin.session',
         ],
         'admin_install' => [
+            'admin.browser',
             'admin.initialize',
             'admin.session',
         ],
@@ -128,11 +140,11 @@ class ExmentServiceProvider extends ServiceProvider
         ],
         'adminapi' => [
             'adminapi.auth',
-            'throttle:60,1',
+            // 'throttle:60,1',
             'bindings',
         ],
         'adminapi_anonymous' => [
-            'throttle:60,1',
+            // 'throttle:60,1',
             'bindings',
         ],
         'exment_web' => [
@@ -199,6 +211,9 @@ class ExmentServiceProvider extends ServiceProvider
         // bind plugin for page
         $this->app->bind(PluginPublicBase::class, function ($app) {
             return Plugin::getPluginPageModel();
+        });
+        $this->app->bind(CustomTable::class, function ($app) {
+            return CustomTable::findByEndpoint();
         });
         
         Passport::ignoreMigrations();

@@ -9,6 +9,7 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\PluginType;
 use Exceedone\Exment\ColumnItems\ParentItem;
+use Exceedone\Exment\Form\Widgets\ModalForm;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Validator;
@@ -119,6 +120,7 @@ class DataImportExportService extends AbstractExporter
      */
     public function export()
     {
+        set_time_limit(240);
         $datalist = $this->exportAction->datalist();
 
         $files = $this->format
@@ -250,10 +252,7 @@ class DataImportExportService extends AbstractExporter
     public function getImportModal($pluginlist = null)
     {
         // create form fields
-        $form = new \Exceedone\Exment\Form\Widgets\ModalForm();
-        $form->disableReset();
-        $form->modalAttribute('id', 'data_import_modal');
-        $form->modalHeader(exmtrans('common.import') . ' - ' . $this->importAction->getImportHeaderViewName());
+        $form = new ModalForm();
 
         $fileOption = Define::FILE_OPTION();
         $form->action(admin_urls($this->importAction->getImportEndpoint(), 'import'))
@@ -297,8 +296,12 @@ class DataImportExportService extends AbstractExporter
             ->help(exmtrans('custom_value.import.help.import_error_message'));
 
         $this->importAction->setImportModalItems($form);
-            
-        return $form->render()->render();
+        
+        return getAjaxResponse([
+            'body'  => $form->render(),
+            'script' => $form->getScript(),
+            'title' => exmtrans('common.import') . ' - ' . $this->importAction->getImportHeaderViewName()
+        ]);
     }
     
     /**
@@ -348,13 +351,13 @@ class DataImportExportService extends AbstractExporter
                     continue;
                 }
 
-                if (ColumnType::isMultipleEnabled(array_get($target_column, 'column_type'))
-                    && boolval(array_get($target_column, 'options.multiple_enabled'))) {
-                    $value = explode(",", $value);
-                }
-
                 // convert target key's id
                 if (isset($value)) {
+                    if (ColumnType::isMultipleEnabled(array_get($target_column, 'column_type'))
+                        && boolval(array_get($target_column, 'options.multiple_enabled'))) {
+                        $value = explode(",", $value);
+                    }
+
                     if (array_has($options, 'setting')) {
                         $s = collect($options['setting'])->filter(function ($s) use ($key) {
                             return isset($s['target_column_name']) && $s['column_name'] == $key;
@@ -390,15 +393,24 @@ class DataImportExportService extends AbstractExporter
      */
     protected static function getImportColumnValue(&$data, $key, &$value, $column_item, $column_view_name, $setting, $target_table, $options = [])
     {
+        $setting = $setting ?? [];
         $options = array_merge(
             [
                 'errorCallback' => null,
+                'datalist' => null,
             ],
             $options
         );
 
+        if (method_exists($column_item, 'getKeyAndIdList')) {
+            $datalist = $column_item->getKeyAndIdList($options['datalist'], array_get($setting, 'target_column_name'));
+            if (!is_nullorempty($datalist)) {
+                $setting['datalist'] = $datalist;
+            }
+        }
+
         $base_value = $value;
-        $importValue = $column_item->getImportValue($value, $setting ?? null);
+        $importValue = $column_item->getImportValue($value, $setting);
 
         if (!isset($importValue)) {
             return;

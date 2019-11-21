@@ -54,7 +54,7 @@ class CustomTableController extends AdminControllerBase
         });
 
         $grid->disableExport();
-        if (!\Exment::user()->hasPermission(Permission::SYSTEM)) {
+        if (!\Exment::user()->hasPermission(Permission::CUSTOM_TABLE)) {
             $grid->disableCreateButton();
         }
 
@@ -118,11 +118,11 @@ class CustomTableController extends AdminControllerBase
             ->help(exmtrans('common.help.view_name'));
         $form->textarea('description', exmtrans("custom_table.field_description"))->rows(3);
         
-        
         $form->number('order', exmtrans("custom_table.order"))->rules("integer")
             ->help(sprintf(exmtrans("common.help.order"), exmtrans('common.custom_table')));
-        
+
         $form->exmheader(exmtrans('common.detail_setting'))->hr();
+
         $form->embeds('options', exmtrans("custom_column.options.header"), function ($form) use ($id) {
             $form->color('color', exmtrans("custom_table.color"))->help(exmtrans("custom_table.help.color"));
             $form->icon('icon', exmtrans("custom_table.icon"))->help(exmtrans("custom_table.help.icon"));
@@ -153,7 +153,7 @@ class CustomTableController extends AdminControllerBase
                 ->default(config('exment.revision_count', 100))
                 ->attribute(['data-filter' => json_encode(['key' => 'options_revision_flg', 'value' => "1"])])
                 ;
-                
+            
             $form->switchbool('all_user_editable_flg', exmtrans("custom_table.all_user_editable_flg"))->help(exmtrans("custom_table.help.all_user_editable_flg"))
                 ->default("0")
             ;

@@ -70,6 +70,7 @@ class DefaultTableProvider extends ProviderBase
 
         $results = [];
         foreach ($value_customs as $line_no => $value_custom) {
+            $options['datalist'] = $value_customs;
             ///// convert data first.
             $value_custom = $this->dataProcessingFirst($value_custom, $line_no, $options);
 
@@ -139,14 +140,36 @@ class DefaultTableProvider extends ProviderBase
         $data = array_get($dataAndModel, 'data');
         $model = array_get($dataAndModel, 'model');
 
+        $errors = [];
+
+        $validateRow = true;
+        // check create or update check
+        // *Only check user object for batch
+        if (isset($model) && !is_nullorempty(\Exment::user())) {
+            if (!$model->exists && ($code = $this->custom_table->enableCreate()) !== true) {
+                $validateRow = false;
+            } elseif (array_key_value_exists('deleted_at', $data) && ($code = $model->enableDelete()) !== true) {
+                $validateRow = false;
+            } elseif ($model->exists && ($code = $model->enableEdit()) !== true) {
+                $validateRow = false;
+            }
+        }
+
+        if (!$validateRow && isset($code) && $code !== true) {
+            $errors[] = sprintf(exmtrans('custom_value.import.import_error_format'), ($line_no+1), $code->getMessage());
+        }
+
         // execute validation
         $validator = $this->custom_table->validateValue(array_dot_reverse($data), true, array_get($model, 'id'), 'value.');
         if ($validator->fails()) {
             // create error message
-            $errors = [];
             foreach ($validator->errors()->messages() as $message) {
                 $errors[] = sprintf(exmtrans('custom_value.import.import_error_format'), ($line_no+1), implode(',', $message));
             }
+            // return $errors;
+        }
+
+        if (!is_nullorempty($errors)) {
             return $errors;
         }
         return true;
