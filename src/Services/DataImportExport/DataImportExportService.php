@@ -95,7 +95,7 @@ class DataImportExportService extends AbstractExporter
         switch ($format) {
             case 'excel':
             case 'xlsx':
-                return new Formats\Spout();
+                return new Formats\Xlsx();
             default:
                 return new Formats\Csv();
         }
@@ -128,8 +128,8 @@ class DataImportExportService extends AbstractExporter
             ->filebasename($this->exportAction->filebasename())
             ->createFile();
         
-        // $response = $this->format->createResponse($files);
-        // $response->send();
+        $response = $this->format->createResponse($files);
+        $response->send();
         exit;
     }
 

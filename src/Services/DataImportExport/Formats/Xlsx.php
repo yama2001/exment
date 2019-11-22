@@ -3,6 +3,9 @@
 namespace Exceedone\Exment\Services\DataImportExport\Formats;
 
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use Exceedone\Exment\Enums\SpreadsheetVendor;
+use Box\Spout\Reader\Common\Creator\ReaderEntityFactory;
+use Box\Spout\Writer\Common\Creator\WriterEntityFactory;
 
 class Xlsx extends FormatBase
 {
@@ -78,11 +81,19 @@ class Xlsx extends FormatBase
     
     protected function createWriter($spreadsheet)
     {
-        return IOFactory::createWriter($spreadsheet, 'Xlsx');
+        if($this->spreadsheetVendor == SpreadsheetVendor::SPOUT){
+            return WriterEntityFactory::createXLSXWriter();
+        }else{
+            return IOFactory::createWriter($spreadsheet, 'Xlsx');
+        }
     }
     
     protected function createReader()
     {
-        return IOFactory::createReader('Xlsx');
+        if($this->spreadsheetVendor == SpreadsheetVendor::SPOUT){
+            return ReaderEntityFactory::createXLSXReader();
+        }else{
+            return IOFactory::createReader('Xlsx');
+        }
     }
 }

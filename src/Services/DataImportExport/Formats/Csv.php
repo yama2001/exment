@@ -2,8 +2,11 @@
 
 namespace Exceedone\Exment\Services\DataImportExport\Formats;
 
+use Box\Spout\Reader\Common\Creator\ReaderEntityFactory;
+use Box\Spout\Writer\Common\Creator\WriterEntityFactory;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Enums\SpreadsheetVendor;
 use \File;
 
 class Csv extends FormatBase
@@ -142,12 +145,21 @@ class Csv extends FormatBase
 
     protected function createWriter($spreadsheet)
     {
-        return IOFactory::createWriter($spreadsheet, 'Csv');
+        if($this->spreadsheetVendor == SpreadsheetVendor::SPOUT){
+            return WriterEntityFactory::createCSVWriter();
+        }else{
+            return IOFactory::createWriter($spreadsheet, 'Csv');
+        }
     }
     
     protected function createReader()
     {
-        return IOFactory::createReader('Csv');
+        if($this->spreadsheetVendor == SpreadsheetVendor::SPOUT){
+            return ReaderEntityFactory::createCSVReader();
+        }else{
+            return IOFactory::createReader('Csv');
+        }
+        
     }
 
     protected function getCsvArray($file)

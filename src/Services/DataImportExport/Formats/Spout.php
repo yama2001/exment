@@ -87,7 +87,6 @@ class Spout extends FormatBase
                 $sheet = $writer->getCurrentSheet();
             }
             $sheet->setName($sheet_name);
-            //$sheet->fromArray($outputs, null, 'A1', false, false);
 
             // set autosize
             if (count($outputs) > 0) {
@@ -100,33 +99,12 @@ class Spout extends FormatBase
                     })->toArray();
                     $row = WriterEntityFactory::createRowFromArray($data);
                     $writer->addRow($row);
-                    //$sheet->getColumnDimension(getCellAlphabet($i + 1))->setAutoSize(true);
                 }
             }
-
-            // if ($this->isOutputAsZip()) {
-            //     $spreadsheet->addSheet($sheet);
-            //     $spreadsheet->removeSheetByIndex(0);
-            //     $files[] = [
-            //         'name' => $sheet_name,
-            //         'writer' => $this->createWriter($spreadsheet)
-            //     ];
-            //     $spreadsheet = new Spreadsheet();
-            // } else {
-            //     $spreadsheet->addSheet($sheet);
-            // }
         }
         $writer->close();
-
-        // if (!$this->isOutputAsZip()) {
-        //     $spreadsheet->removeSheetByIndex(0);
-        //     $files[] = [
-        //         'name' => $sheet_name,
-        //         'writer' => $this->createWriter($spreadsheet)
-        //     ];
-        // }
-        // return $files;
     }
+
     /**
      * whether this out is as zip.
      * This table is parent and contains relation 1:n or n:n.

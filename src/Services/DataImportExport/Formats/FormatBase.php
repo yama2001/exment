@@ -5,11 +5,15 @@ namespace Exceedone\Exment\Services\DataImportExport\Formats;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Cell;
+use Exceedone\Exment\Enums\SpreadsheetVendor;
+use Box\Spout\Reader\Common\Creator\ReaderEntityFactory;
+use Box\Spout\Writer\Common\Creator\WriterEntityFactory;
 
 abstract class FormatBase
 {
     protected $datalist;
     protected $filebasename;
+    protected $spreadsheetVendor;
     protected $accept_extension = '*';
 
     public function datalist($datalist = [])
@@ -20,6 +24,8 @@ abstract class FormatBase
         
         $this->datalist = $datalist;
         
+        $this->setSpreadsheetVendor();
+
         return $this;
     }
 
@@ -44,6 +50,19 @@ abstract class FormatBase
      * 1 sheet - 1 table data
      */
     public function createFile()
+    {
+        if($this->spreadsheetVendor == SpreadsheetVendor::SPOUT){
+            return $this->createFileSpOut();
+        }else{
+            return $this->createFilePhpSpreadSheet();
+        }
+    }
+
+    /**
+     * create file using PHP spreadsheet
+     * 1 sheet - 1 table data
+     */
+    protected function createFilePhpSpreadSheet()
     {
         // define writers. if zip, set as array.
         $files = [];
@@ -97,6 +116,74 @@ abstract class FormatBase
             ];
         }
         return $files;
+    }
+    
+    /**
+     * create file SpOyr
+     * 1 sheet - 1 table data
+     */
+    public function createFileSpOut()
+    {
+        // define writers. if zip, set as array.
+        $files = [];
+        // create excel
+        $filename = $this->getFileName();
+
+        $writer = WriterEntityFactory::createXLSXWriter();
+        $writer->openToBrowser($filename);
+
+        foreach ($this->datalist as $index => $data) {
+            $sheet_name = array_get($data, 'name');
+            $outputs = array_get($data, 'outputs');
+
+            if ($index > 0) {
+                $sheet = $writer->addNewSheetAndMakeItCurrent();
+            } else {
+                $sheet = $writer->getCurrentSheet();
+            }
+            $sheet->setName($sheet_name);
+
+            if (count($outputs) > 0) {
+                for ($i = 0; $i < count($outputs); $i++) {
+                    $data = collect($outputs[$i])->map(function($value) {
+                        if ($value instanceof Carbon) {
+                            return $value->__toString();
+                        }
+                        return $value;
+                    })->toArray();
+                    $row = WriterEntityFactory::createRowFromArray($data);
+                    $writer->addRow($row);
+                }
+            }
+        }
+        $writer->close();
+    }
+
+    protected function setSpreadsheetVendor(){
+        if(boolval(config('exment.export_always_use_spout', false))){
+            $this->spreadsheetVendor = SpreadsheetVendor::SPOUT;
+            return $this;
+        }
+        
+        // calc data count
+        $rowCount = 0;
+        $colCount = 0;
+        foreach ($this->datalist as $index => $data) {
+            $outputs = array_get($data, 'outputs', []);
+            $rowCount += count($outputs);
+
+            if($index == 0 && count($outputs) > 0){
+                $colCount = count($outputs[0]);
+            }
+        }
+
+        if($rowCount * $colCount >= 10000){
+            $this->spreadsheetVendor = SpreadsheetVendor::SPOUT;
+        }else{
+            $this->spreadsheetVendor = SpreadsheetVendor::PHPSPREADSHEET;
+        }
+
+        return $this;
     }
 
     abstract public function createResponse($files);

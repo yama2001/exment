@@ -480,4 +480,12 @@ return [
     |
     */
     '7zip_dir' => env('EXMENT_7ZIP_DIR', 'C:\\Program Files\\7-Zip'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Export alwaus use spout
+    |--------------------------------------------------------------------------
+    |
+    */
+    'export_always_use_spout' => env('EXMENT_EXPORT_ALWAYS_USE_SPOUT', false),
 ];
