@@ -122,7 +122,7 @@ class WorkflowItem extends SystemItem
         $tableName = getDBTableName($custom_table);
 
         /////// first query. not has workflow value's custom value
-        $subquery = \DB::table($tableName)
+        $subquery1 = \DB::table($tableName)
         ->join(SystemTableName::WORKFLOW_TABLE, function ($join) use ($tableName, $custom_table) {
             $join->where(SystemTableName::WORKFLOW_TABLE . '.custom_table_id', $custom_table->id)
                 ->where(SystemTableName::WORKFLOW_TABLE . '.active_flg', 1)
@@ -220,8 +220,76 @@ class WorkflowItem extends SystemItem
         ->distinct()
         ->select([$tableName .'.id  as morph_id']);
 
-        /////// third query. has workflow value's custom value and workflow value authorities
+
+        /////// third query. has workflow value's custom value dynamic flow
+        $subsubquery3 = \DB::table(SystemTableName::WORKFLOW_VALUE)
+            ->leftJoin(SystemTableName::WORKFLOW_VALUE . ' as workflow_values_sub', function ($join) {
+                $join->on(SystemTableName::WORKFLOW_VALUE . '.morph_id', SystemTableName::WORKFLOW_VALUE . '_sub.morph_id')
+                    ->where(SystemTableName::WORKFLOW_VALUE . '.morph_type', SystemTableName::WORKFLOW_VALUE . '_sub.morph_type')
+                    ->whereNull(SystemTableName::WORKFLOW_VALUE . '_sub.workflow_status_from_id')
+                    ->where(SystemTableName::WORKFLOW_VALUE . '.id', '<', SystemTableName::WORKFLOW_VALUE . '_sub.id');
+                })->whereNull(SystemTableName::WORKFLOW_VALUE . '_sub.id')
+            ->whereNull(SystemTableName::WORKFLOW_VALUE . '.workflow_status_from_id')
+            ->select([SystemTableName::WORKFLOW_VALUE . '.morph_id', SystemTableName::WORKFLOW_VALUE . '.morph_type', SystemTableName::WORKFLOW_VALUE . '.created_user_id AS called_created_user_id']);
+
         $subquery3 = \DB::table($tableName)
+        ->join(SystemTableName::WORKFLOW_VALUE, function ($join) use ($tableName, $custom_table) {
+            $join->on(SystemTableName::WORKFLOW_VALUE . '.morph_id', $tableName .'.id')
+                ->where(SystemTableName::WORKFLOW_VALUE . '.morph_type', $custom_table->table_name)
+                ->where(SystemTableName::WORKFLOW_VALUE . '.latest_flg', 1);
+        })
+        ->join(SystemTableName::WORKFLOW_TABLE, function ($join) use ($tableName, $custom_table) {
+            $join->where(SystemTableName::WORKFLOW_TABLE . '.custom_table_id', $custom_table->id)
+                ->where(SystemTableName::WORKFLOW_TABLE . '.active_flg', 1)
+                ;
+        })
+        ->join(SystemTableName::WORKFLOW, function ($join) {
+            $join->on(SystemTableName::WORKFLOW_TABLE . '.workflow_id', SystemTableName::WORKFLOW . ".id")
+            ->on(SystemTableName::WORKFLOW_VALUE . '.workflow_id', SystemTableName::WORKFLOW . ".id")
+                ;
+        })
+        ->join(SystemTableName::WORKFLOW_ACTION, function ($join) {
+            $join
+            ->on(SystemTableName::WORKFLOW_ACTION . '.workflow_id', SystemTableName::WORKFLOW . ".id")
+            ->where('ignore_work', false)
+            ->where(function ($query) {
+                $query->where(function ($query) {
+                    $query->where(SystemTableName::WORKFLOW_ACTION . '.status_from', Define::WORKFLOW_START_KEYNAME)
+                        ->whereNull(SystemTableName::WORKFLOW_VALUE . '.workflow_status_to_id')
+                    ;
+                })->orWhere(function ($query) {
+                    $query->where(SystemTableName::WORKFLOW_ACTION . '.status_from', \DB::raw(SystemTableName::WORKFLOW_VALUE . '.workflow_status_to_id'))
+                    ;
+                });
+            });
+        })
+        /// get action called action user
+        ->join(SystemTableName::WORKFLOW_VALUE . ' AS workflow_values_called', function ($join) use ($tableName, $custom_table) {
+            $join->on(SystemTableName::WORKFLOW_VALUE . '.morph_id', $tableName .'.id')
+                ->where(SystemTableName::WORKFLOW_VALUE . '.morph_type', $custom_table->table_name)
+                ->where(SystemTableName::WORKFLOW_VALUE . '.latest_flg', 1);
+        })
+        ->joinSub($subsubquery3, 'called_workflow_values', function ($join) use ($tableName) {
+            $join->on(SystemTableName::WORKFLOW_VALUE . '.morph_id', 'called_workflow_values.morph_id')
+                ->where(SystemTableName::WORKFLOW_VALUE . '.morph_type', 'called_workflow_values.morph_type');
+        })
+        ///// add authority function for user or org
+        ->where(function ($query) use ($tableName, $custom_table) {
+            $classes = [
+                \Exceedone\Exment\ConditionItems\UserTableColumnItem::class,
+                \Exceedone\Exment\ConditionItems\OrganizationTableColumnItem::class,
+            ];
+
+            foreach ($classes as $class) {
+                $class::setConditionQuery($query, $tableName, $custom_table);
+            }
+        })
+        ->distinct()
+        ->select([$tableName .'.id  as morph_id']);
+
+
+        /////// last query. has workflow value's custom value and workflow value authorities
+        $subquery = \DB::table($tableName)
         ->join(SystemTableName::WORKFLOW_VALUE, function ($join) use ($tableName, $custom_table) {
             $join->on(SystemTableName::WORKFLOW_VALUE . '.morph_id', $tableName .'.id')
                 ->where(SystemTableName::WORKFLOW_VALUE . '.morph_type', $custom_table->table_name)
@@ -273,13 +341,14 @@ class WorkflowItem extends SystemItem
 
         
 
-        ->union($subquery)
+        ->union($subquery1)
         ->union($subquery2)
+        ->union($subquery3)
         
         ->distinct()
         ->select([$tableName .'.id as morph_id']);
  
-        $query->joinSub($subquery3, 'workflow_values_wf', function ($join) use ($tableName) {
+        $query->joinSub($subquery, 'workflow_values_wf', function ($join) use ($tableName) {
             $join->on($tableName . '.id', 'workflow_values_wf.morph_id');
         });
 
