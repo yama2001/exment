@@ -60,6 +60,8 @@ return [
         'available' => '使用する',
         'history' => '履歴',
         'create_only_setting' => '新規作成時設定',
+        'join_and' => 'かつ',
+        'join_or' => 'または',
 
         'message' => [
             'confirm_execute' => '%sを実行します。\r\nよろしいですか？',
@@ -1008,7 +1010,6 @@ return [
         'priority' => '優先順位',
         'pager_count_default' => 'システム設定に合わせる',
         'custom_view_filters' => '表示条件',
-        'view_filter_join' => '条件の結合',
         'view_filter_condition' => '検索条件',
         'view_filter_condition_value_text' => '検索値',
         'view_group_condition' => '列タイプ',
@@ -1025,11 +1026,6 @@ return [
         'help' => [
             'sort_type' => 'ソートを、「昇順(小さい順)」で実行するか、「降順（大きい順）」で実行するか、指定します。',
             'sort_order_summaries' => '取得するデータをソートします。<br />「グループ列」「集計列」の中から、数値の小さい順に、ソートを実行します。',
-        ],
-
-        'view_filter_join_options' => [
-            'and' => 'すべての条件に一致',
-            'or' => 'いずれかの条件に一致',
         ],
 
         'column_sort_options' => [
@@ -1589,6 +1585,7 @@ return [
         'condition_target' => '条件項目',
         'condition_key' => '検索条件',
         'condition_value' => '条件値',
+        'condition_join' => '条件の結合',
         'condition_type_options' => [
             'user' => 'ユーザー',
             'organization' => '組織',
@@ -1605,6 +1602,11 @@ return [
             'number_lte' => '以下',
             'day_on_or_after' => '以降',
             'day_on_or_before' => '以前',
+        ],
+
+        'condition_join_options' => [
+            'and' => 'すべての条件に一致',
+            'or' => 'いずれかの条件に一致',
         ],
     ],
 ];
