@@ -485,6 +485,10 @@ class CustomViewController extends AdminControllerTableBase
         });
 
         $hasManyTable->render();
+
+         $form->radio('view_filter_join', exmtrans("custom_view.view_filter_join"))
+            ->options(exmtrans("custom_view.view_filter_join_options"))
+            ->default('and');
     }
 
     /**

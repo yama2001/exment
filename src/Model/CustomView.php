@@ -24,7 +24,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     use Traits\DatabaseJsonTrait;
 
     //protected $appends = ['view_calendar_target', 'pager_count'];
-    protected $appends = ['pager_count'];
+    protected $appends = ['pager_count', 'view_filter_join'];
     protected $guarded = ['id', 'suuid'];
     protected $casts = ['options' => 'json'];
     //protected $with = ['custom_table', 'custom_view_columns'];
@@ -511,8 +511,9 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
      */
     public function setValueFilters($model, $db_table_name = null)
     {
+        $or_option = $this->view_filter_join == 'or'? true: false;
         foreach ($this->custom_view_filters_cache as $filter) {
-            $filter->setValueFilter($model, $db_table_name);
+            $filter->setValueFilter($model, $db_table_name, $or_option);
         }
         return $model;
     }
@@ -926,6 +927,18 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     public function setPagerCountAttribute($val)
     {
         $this->setOption('pager_count', $val);
+
+        return $this;
+    }
+    
+    public function getViewFilterJoinAttribute()
+    {
+        return $this->getOption('view_filter_join');
+    }
+
+    public function setViewFilterJoinAttribute($val)
+    {
+        $this->setOption('view_filter_join', $val);
 
         return $this;
     }

@@ -1008,6 +1008,7 @@ return [
         'priority' => '優先順位',
         'pager_count_default' => 'システム設定に合わせる',
         'custom_view_filters' => '表示条件',
+        'view_filter_join' => '条件の結合',
         'view_filter_condition' => '検索条件',
         'view_filter_condition_value_text' => '検索値',
         'view_group_condition' => '列タイプ',
@@ -1024,6 +1025,11 @@ return [
         'help' => [
             'sort_type' => 'ソートを、「昇順(小さい順)」で実行するか、「降順（大きい順）」で実行するか、指定します。',
             'sort_order_summaries' => '取得するデータをソートします。<br />「グループ列」「集計列」の中から、数値の小さい順に、ソートを実行します。',
+        ],
+
+        'view_filter_join_options' => [
+            'and' => 'すべての条件に一致',
+            'or' => 'いずれかの条件に一致',
         ],
 
         'column_sort_options' => [
