@@ -87,4 +87,18 @@ class OrganizationItem extends ConditionItemBase implements ConditionItemInterfa
                 ->where($authorityTableName . '.related_type', ConditionTypeDetail::ORGANIZATION()->lowerkey());
         });
     }
+    
+    /**
+     * Set Authority Targets
+     *
+     * @param WorkflowAuthority $workflow_authority
+     * @param CustomValue $custom_value
+     * @param array $userIds
+     * @param array $organizationIds
+     * @param array $labels
+     * @return void
+     */
+    public function setAuthorityTargets($workflow_authority, $custom_value, &$userIds, &$organizationIds, &$labels, $options = []){
+        $organizationIds[] = $workflow_authority->related_id;
+    }
 }

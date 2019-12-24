@@ -84,4 +84,18 @@ class UserItem extends ConditionItemBase implements ConditionItemInterface
                 ->where($authorityTableName . '.related_type', ConditionTypeDetail::USER()->lowerkey());
         });
     }
+
+    /**
+     * Set Authority Targets
+     *
+     * @param WorkflowAuthority $workflow_authority
+     * @param CustomValue $custom_value
+     * @param array $userIds
+     * @param array $organizationIds
+     * @param array $labels
+     * @return void
+     */
+    public function setAuthorityTargets($workflow_authority, $custom_value, &$userIds, &$organizationIds, &$labels, $options = []){
+        $userIds[] = $workflow_authority->related_id;
+    }
 }

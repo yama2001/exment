@@ -52,4 +52,16 @@ interface ConditionItemInterface
      * @return boolean
      */
     public function hasAuthority($workflow_authority, $custom_value, $targetUser);
+
+    /**
+     * Set Authority Targets
+     *
+     * @param WorkflowAuthority $workflow_authority
+     * @param CustomValue $custom_value
+     * @param array $userIds
+     * @param array $organizationIds
+     * @param array $labels
+     * @return void
+     */
+    public function setAuthorityTargets($workflow_authority, $custom_value, &$userIds, &$organizationIds, &$labels, $options = []);
 }

@@ -11,7 +11,7 @@ namespace Exment {
         }
 
         public static GetSettingValText(){
-            const targetKeys = ['work_target_type', 'modal_user', 'modal_organization', 'modal_column', 'modal_system'];
+            const targetKeys = ['work_target_type', 'modal_user', 'modal_organization', 'modal_column', 'modal_system', 'modal_usertable_column', 'modal_organizationtable_column'];
 
             // get col value item list
             let form = $('[data-contentname="workflow_actions_work_targets"] form');
@@ -51,7 +51,7 @@ namespace Exment {
                 }
                 // else if(target.prop('type') == 'radio'){
                 //     texts.push(escHtml(target.closest('.radio-inline').text().trim()));
-                // }
+                // }]
             });
 
             if($('.work_target_type:checked').val() == 'action_select'){

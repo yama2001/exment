@@ -14,6 +14,8 @@ class ConditionTypeDetail extends EnumBase
     const ROLE = "3";
     const SYSTEM = "4";
     const COLUMN = "9";
+    const USERTABLE_COLUMN = "11";
+    const ORGANIZATIONTABLE_COLUMN = "12";
 
     public static function SYSTEM_TABLE_OPTIONS($form_priority_type)
     {
@@ -57,6 +59,10 @@ class ConditionTypeDetail extends EnumBase
                 return new ConditionItems\SystemItem($custom_table, $target);
             case ConditionTypeDetail::COLUMN:
                 return new ConditionItems\ColumnItem($custom_table, $target);
+            case ConditionTypeDetail::USERTABLE_COLUMN:
+                return new ConditionItems\UserTableColumnItem($custom_table, $target);
+            case ConditionTypeDetail::ORGANIZATIONTABLE_COLUMN:
+                return new ConditionItems\OrganizationTableColumnItem($custom_table, $target);
         }
     }
 }
