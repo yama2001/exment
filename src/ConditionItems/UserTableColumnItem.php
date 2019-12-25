@@ -4,6 +4,7 @@ namespace Exceedone\Exment\ConditionItems;
 
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\Condition;
 use Exceedone\Exment\Enums\ColumnType;
@@ -50,4 +51,20 @@ class UserTableColumnItem extends ColumnItem
         return \Exment::user()->base_user_id;
     }
 
+    protected static function getTargetTableConditionQuery($custom_table){
+        return CustomTable::getEloquent(SystemTableName::USER);
+    }
+    
+    protected static function getRelatedTypeConditionQuery(){
+        return ConditionTypeDetail::USERTABLE_COLUMN()->lowerkey();
+    }
+
+    protected static function getUserIndexNameConditionQuery($custom_column){
+        return 'exm_user.' . $custom_column->getIndexColumnName();
+    }
+
+    protected static function getOrgIndexNameConditionQuery($custom_column){
+        $orgPivotName = CustomRelation::getRelationNamebyTables(SystemTableName::ORGANIZATION, SystemTableName::USER);
+        return "$orgPivotName.parent_id";
+    }
 }

@@ -2,10 +2,16 @@
 
 namespace Exceedone\Exment\ConditionItems;
 
+use Encore\Admin\Form\Field\Select;
 use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\FilterKind;
 use Exceedone\Exment\Enums\FilterType;
 use Exceedone\Exment\Enums\SystemColumn;
+use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Model\Workflow;
+use Exceedone\Exment\Model\WorkflowStatus;
+use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\CustomRelation;
 
 class WorkflowItem extends SystemItem implements ConditionItemInterface
 {

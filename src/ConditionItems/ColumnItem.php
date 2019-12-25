@@ -127,6 +127,9 @@ class ColumnItem extends ConditionItemBase implements ConditionItemInterface
      */
     public static function setConditionQuery($query, $tableName, $custom_table, $authorityTableName = SystemTableName::WORKFLOW_AUTHORITY)
     {
+        $custom_table = static::getTargetTableConditionQuery($custom_table);
+        $relatedType = static::getRelatedTypeConditionQuery();
+
         /// get user or organization list
         $custom_columns = CustomColumn::allRecordsCache(function ($custom_column) use ($custom_table) {
             if ($custom_table->id != $custom_column->custom_table_id) {
@@ -141,24 +144,27 @@ class ColumnItem extends ConditionItemBase implements ConditionItemInterface
             return true;
         });
 
+        if(count($custom_columns) == 0){
+            $query->whereRaw('1 = 0');
+            return;
+        }
+
         $org_ids = \Exment::user()->base_user->belong_organizations->pluck('id')->toArray();
         foreach ($custom_columns as $custom_column) {
-            $query->orWhere(function ($query) use ($custom_column, $tableName, $org_ids, $authorityTableName) {
-                $indexName = $custom_column->getIndexColumnName();
+            $userIndexName = static::getUserIndexNameConditionQuery($custom_column);
+            $orgIndexName = static::getOrgIndexNameConditionQuery($custom_column);
+            
+            $query->where($authorityTableName . '.related_id', $custom_column->id)
+                ->where($authorityTableName . '.related_type', $relatedType);
                 
-                $query->where($authorityTableName . '.related_id', $custom_column->id)
-                    ->where($authorityTableName . '.related_type', ConditionTypeDetail::COLUMN()->lowerkey());
-                    
-                if ($custom_column->column_type == ColumnType::USER) {
-                    $query->where($tableName . '.' . $indexName, \Exment::user()->id);
-                } else {
-                    $query->whereIn($tableName . '.' . $indexName, $org_ids);
-                }
-            });
+            if ($custom_column->column_type == ColumnType::USER) {
+                $query->where($userIndexName, \Exment::user()->id);
+            } else {
+                $query->whereIn($orgIndexName, $org_ids);
+            }
         }
     }
-    
-    
+
     /**
      * Set Authority Targets
      *
@@ -195,5 +201,21 @@ class ColumnItem extends ConditionItemBase implements ConditionItemInterface
                 $organizationIds[] = $auth_value;
             }
         }
+    }
+    
+    protected static function getTargetTableConditionQuery($custom_table){
+        return $custom_table;
+    }
+    
+    protected static function getRelatedTypeConditionQuery(){
+        return ConditionTypeDetail::COLUMN()->lowerkey();
+    }
+    
+    protected static function getUserIndexNameConditionQuery($custom_column){
+        return $custom_column->getIndexColumnName();
+    }
+
+    protected static function getOrgIndexNameConditionQuery($custom_column){
+        return $custom_column->getIndexColumnName();
     }
 }
