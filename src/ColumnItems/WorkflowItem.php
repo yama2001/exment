@@ -9,6 +9,7 @@ use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Model\Workflow;
 use Exceedone\Exment\Model\WorkflowStatus;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\CustomRelation;
 
 class WorkflowItem extends SystemItem
 {
@@ -120,6 +121,8 @@ class WorkflowItem extends SystemItem
         static::$addWorkUsersSubQuery = true;
 
         $tableName = getDBTableName($custom_table);
+        $userTableName = getDBTableName(SystemTableName::USER);
+        $orgPivotName = CustomRelation::getRelationNamebyTables(SystemTableName::ORGANIZATION, SystemTableName::USER);
 
         /////// first query. not has workflow value's custom value
         $subquery1 = \DB::table($tableName)
@@ -272,6 +275,14 @@ class WorkflowItem extends SystemItem
         ->joinSub($subsubquery3, 'called_workflow_values', function ($join) use ($tableName) {
             $join->on(SystemTableName::WORKFLOW_VALUE . '.morph_id', 'called_workflow_values.morph_id')
                 ->where(SystemTableName::WORKFLOW_VALUE . '.morph_type', 'called_workflow_values.morph_type');
+        })
+        // join user
+        ->join("$userTableName AS exm_user", function ($join) {
+            $join->on('exm_user.id', 'called_workflow_values.called_created_user_id');
+        })
+        // leftjoin org
+        ->leftJoin("$orgPivotName AS exm_pivot_org", function ($join) {
+            $join->on('called_workflow_values.called_created_user_id', 'exm_pivot_org.child_id');
         })
         ///// add authority function for user or org
         ->where(function ($query) use ($tableName, $custom_table) {
