@@ -12,48 +12,48 @@ class UnitPerformanceTest extends TestCase
 {
     public function testGetEloquentPerformance()
     {
-        $time_start = microtime(true);
+    //     $time_start = microtime(true);
 
-        foreach([1, 10, 1000] as $count){
-            $this->showMicrotimeLog('CustomTable getEloquent' . $count, function() use($count){
-                for($i = 0; $i < $count; $i++){
-                    CustomTable::getEloquent(SystemTableName::USER);
-                }
+    //     foreach([1, 10, 1000] as $count){
+    //         $this->showMicrotimeLog('CustomTable getEloquent' . $count, function() use($count){
+    //             for($i = 0; $i < $count; $i++){
+    //                 CustomTable::getEloquent(SystemTableName::USER);
+    //             }
 
-                System::clearCache();
-                System::clearRequestSession();
-            });
+    //             System::clearCache();
+    //             System::clearRequestSession();
+    //         });
             
-            $this->showMicrotimeLog('CustomTable whereFirst' . $count, function() use($count){
-                for ($i = 0; $i < $count; $i++) {
-                    CustomTable::where('table_name', SystemTableName::USER)->first();
-                }
+    //         $this->showMicrotimeLog('CustomTable whereFirst' . $count, function() use($count){
+    //             for ($i = 0; $i < $count; $i++) {
+    //                 CustomTable::where('table_name', SystemTableName::USER)->first();
+    //             }
                 
-                System::clearCache();
-                System::clearRequestSession();
-            });
+    //             System::clearCache();
+    //             System::clearRequestSession();
+    //         });
             
-            $this->showMicrotimeLog('CustomColumn getEloquent' . $count, function() use($count){
-                for($i = 0; $i < $count; $i++){
-                    CustomColumn::getEloquent('user_name', SystemTableName::USER);
-                }
+    //         $this->showMicrotimeLog('CustomColumn getEloquent' . $count, function() use($count){
+    //             for($i = 0; $i < $count; $i++){
+    //                 CustomColumn::getEloquent('user_name', SystemTableName::USER);
+    //             }
 
-                System::clearCache();
-                System::clearRequestSession();
-            });
+    //             System::clearCache();
+    //             System::clearRequestSession();
+    //         });
             
-            $this->showMicrotimeLog('CustomColumn whereFirst' . $count, function() use($count){
-                for ($i = 0; $i < $count; $i++) {
-                    $custom_table = CustomTable::where('table_name', SystemTableName::USER)->first();
-                    CustomColumn::where('custom_table_id', $custom_table->id)->first();
-                }
+    //         $this->showMicrotimeLog('CustomColumn whereFirst' . $count, function() use($count){
+    //             for ($i = 0; $i < $count; $i++) {
+    //                 $custom_table = CustomTable::where('table_name', SystemTableName::USER)->first();
+    //                 CustomColumn::where('custom_table_id', $custom_table->id)->first();
+    //             }
                 
-                System::clearCache();
-                System::clearRequestSession();
-            });
-        }
+    //             System::clearCache();
+    //             System::clearRequestSession();
+    //         });
+    //     }
 
-        $this->assertTrue(true);
+         $this->assertTrue(true);
     }
 
     protected function showMicrotimeLog($funcName, $callback){
