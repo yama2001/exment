@@ -13,7 +13,8 @@ class ErrorCode extends EnumBase
     const WRONG_SCOPE = '106';
     const DATA_NOT_FOUND = '107';
     const ACCESS_DENIED = '108';
-    const ALREADY_DELETED = '109';
+    const OVER_LENGTH = '109';
+    const ALREADY_DELETED = '110';
     const WORKFLOW_LOCK = '201';
     const WORKFLOW_NOSTART = '202';
     const WORKFLOW_END = '203';
