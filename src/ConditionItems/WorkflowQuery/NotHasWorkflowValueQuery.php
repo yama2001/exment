@@ -8,24 +8,29 @@ use Exceedone\Exment\Enums\FilterKind;
 use Exceedone\Exment\Enums\FilterType;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\ConditionTypeDetail;
 use Exceedone\Exment\Model\Workflow;
 use Exceedone\Exment\Model\WorkflowStatus;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomRelation;
 
-class NotHasWorkflowValueQuery
+class NotHasWorkflowValueQuery extends WorkflowQueryBase
 {
-    public static function getSubQuery($query, $tableName, $custom_table)
+    public static function getSubQuery($query, $tableName, $custom_table, $authorities)
     {
         $subqueries = [];
         $classes = [
-            \Exceedone\Exment\ConditionItems\UserItem::class,
-            \Exceedone\Exment\ConditionItems\OrganizationItem::class,
-            \Exceedone\Exment\ConditionItems\ColumnItem::class,
-            \Exceedone\Exment\ConditionItems\SystemItem::class,
+            ConditionTypeDetail::USER()->lowerKey() => \Exceedone\Exment\ConditionItems\UserItem::class,
+            ConditionTypeDetail::ORGANIZATION()->lowerKey() => \Exceedone\Exment\ConditionItems\OrganizationItem::class,
+            ConditionTypeDetail::COLUMN()->lowerKey() => \Exceedone\Exment\ConditionItems\ColumnItem::class,
+            ConditionTypeDetail::SYSTEM()->lowerKey() => \Exceedone\Exment\ConditionItems\SystemItem::class,
         ];
 
-        foreach ($classes as $class) {
+        foreach ($classes as $key => $class) {
+            if(!static::checkAuthorities($key, $authorities)){
+                continue;
+            }
+
             /////// first query. not has workflow value's custom value
             $subquery = \DB::table($tableName)
             ->join(SystemTableName::WORKFLOW_TABLE, function ($join) use ($tableName, $custom_table) {

@@ -121,20 +121,24 @@ class WorkflowItem extends SystemItem
         }
         static::$addWorkUsersSubQuery = true;
 
+        // Get all workflow_authorities on workflow table.
+        $targetAuthorities = Workflow::getAllAuthorities($custom_table);
+        $targetValueAuthorities = Workflow::getAllValueAuthorities($custom_table);
+
         $tableName = getDBTableName($custom_table);
         $userTableName = getDBTableName(SystemTableName::USER);
         $orgPivotName = CustomRelation::getRelationNamebyTables(SystemTableName::ORGANIZATION, SystemTableName::USER);
 
         $queryClasses = [
-            WorkflowQuery\NotHasWorkflowValueQuery::class,
-            WorkflowQuery\WorkflowValueQuery::class,
-            WorkflowQuery\WorkflowValueAuthorityQuery::class,
-            WorkflowQuery\BossUserQuery::class,
+            ['class' => WorkflowQuery\NotHasWorkflowValueQuery::class, 'authorities' => $targetAuthorities],
+            ['class' => WorkflowQuery\WorkflowValueQuery::class, 'authorities' => $targetAuthorities],
+            ['class' => WorkflowQuery\WorkflowValueAuthorityQuery::class, 'authorities' => $targetValueAuthorities],
+            ['class' => WorkflowQuery\BossUserQuery::class, 'authorities' => []],
         ];
 
         $subqueries = [];
         foreach($queryClasses as $queryClass){
-            $subqueries = array_merge($queryClass::getSubQuery($query, $tableName, $custom_table), $subqueries);
+            $subqueries = array_merge($queryClass['class']::getSubQuery($query, $tableName, $custom_table, $queryClass['authorities']), $subqueries);
         }
 
         $subquery = $subqueries[0];

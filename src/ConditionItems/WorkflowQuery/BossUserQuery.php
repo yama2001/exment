@@ -8,14 +8,15 @@ use Exceedone\Exment\Enums\FilterKind;
 use Exceedone\Exment\Enums\FilterType;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\ConditionTypeDetail;
 use Exceedone\Exment\Model\Workflow;
 use Exceedone\Exment\Model\WorkflowStatus;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomRelation;
 
-class BossUserQuery
+class BossUserQuery extends WorkflowQueryBase
 {
-    public static function getSubQuery($query, $tableName, $custom_table)
+    public static function getSubQuery($query, $tableName, $custom_table, $authorities)
     {
         $tableName = getDBTableName($custom_table);
         $userTableName = getDBTableName(SystemTableName::USER);
@@ -23,11 +24,14 @@ class BossUserQuery
 
         $subqueries = [];
         $classes = [
-            \Exceedone\Exment\ConditionItems\UserTableColumnItem::class,
-            \Exceedone\Exment\ConditionItems\OrganizationTableColumnItem::class,
+            ConditionTypeDetail::USERTABLE_COLUMN()->lowerKey() => \Exceedone\Exment\ConditionItems\UserTableColumnItem::class,
+            ConditionTypeDetail::ORGANIZATIONTABLE_COLUMN()->lowerKey() => \Exceedone\Exment\ConditionItems\OrganizationTableColumnItem::class,
         ];
 
-        foreach ($classes as $class) {
+        foreach ($classes as $key => $class) {
+            if(!static::checkAuthorities($key, $authorities)){
+                continue;
+            }
                 
             /////// third query. has workflow value's custom value dynamic flow
             $subsubquery = \DB::table(SystemTableName::WORKFLOW_VALUE)

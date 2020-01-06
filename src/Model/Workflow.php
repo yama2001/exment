@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Enums\WorkflowType;
+use Exceedone\Exment\Enums\SystemTableName;
 
 class Workflow extends ModelBase
 {
@@ -237,5 +238,43 @@ class Workflow extends ModelBase
         $this->workflow_statuses->prepend(WorkflowStatus::getWorkflowStartStatus($this));
 
         return $this;
+    }
+
+    /**
+     * Get all workflow authorities
+     *
+     * @param CustomTable $custom_table
+     * @return void
+     */
+    public static function getAllAuthorities(CustomTable $custom_table)
+    {
+        $values = \DB::table(SystemTableName::WORKFLOW_AUTHORITY)
+            ->join(SystemTableName::WORKFLOW_ACTION, SystemTableName::WORKFLOW_AUTHORITY . '.workflow_action_id', SystemTableName::WORKFLOW_ACTION . '.id')
+            ->join(SystemTableName::WORKFLOW, SystemTableName::WORKFLOW_ACTION . '.workflow_id', SystemTableName::WORKFLOW . '.id')
+            ->join(SystemTableName::WORKFLOW_TABLE, SystemTableName::WORKFLOW_TABLE . '.workflow_id', SystemTableName::WORKFLOW . '.id')
+            ->select(SystemTableName::WORKFLOW_AUTHORITY . '.*')
+            ->distinct()
+            ->get();
+        
+        return $values;
+    }
+
+    /**
+     * Get all value workflow authorities
+     *
+     * @param CustomTable $custom_table
+     * @return void
+     */
+    public static function getAllValueAuthorities(CustomTable $custom_table)
+    {
+        $values = \DB::table(SystemTableName::WORKFLOW_VALUE_AUTHORITY)
+            ->join(SystemTableName::WORKFLOW_VALUE, SystemTableName::WORKFLOW_VALUE_AUTHORITY . '.workflow_value_id', SystemTableName::WORKFLOW_VALUE . '.id')
+            ->join(SystemTableName::WORKFLOW, SystemTableName::WORKFLOW_VALUE . '.workflow_id', SystemTableName::WORKFLOW . '.id')
+            ->join(SystemTableName::WORKFLOW_TABLE, SystemTableName::WORKFLOW_TABLE . '.workflow_id', SystemTableName::WORKFLOW . '.id')
+            ->select(SystemTableName::WORKFLOW_VALUE_AUTHORITY . '.*')
+            ->distinct()
+            ->get();
+        
+        return $values;
     }
 }
