@@ -60,6 +60,8 @@ return [
         'available' => 'Available',
         'history' => 'History',
         'create_only_setting' => 'Setting when creating data',
+        'join_and' => 'And',
+        'join_or' => 'Or',
 
         'message' => [
             'confirm_execute' => 'Are you sure to %s ?',
@@ -681,6 +683,7 @@ return [
             'all' => 'Executable by all users',
             'action_select' => 'Selected by the user who executed the previous action',
             'fix' => 'Set in advance',
+            'boss' => 'Boss',
         ],
     ],
 
@@ -1180,6 +1183,7 @@ return [
             'custom_value_view' => ['label' => 'View Personnel Data', 'help' => 'Users can view personnel data in custom tables.'],
             'custom_value_access' => ['label' => 'Access All Data', 'help' => 'Users can see personnel data in custom tables.<br />*It is not displayed on the menu or list screen, it can be displayed only with internal data or reference from another table.'],
             'custom_value_share' => ['label' => 'Data sharing', 'help' => 'Data can be shared with other users.<br />* You need edit permission for the data.'],
+            'custom_value_view_trashed' => ['label' => 'Show Trashed Data', 'help' => 'Users can restore data that has been deleted. <br /> *To restore data, you need to have edit authority for the data.'],
         ], 
         'role_type_option_value' => [
             'custom_value_edit' => ['label' => 'Editor', 'help' => 'Users can edit personnel data in custom tables.'],
@@ -1330,6 +1334,9 @@ return [
         'export' => 'Export',
         'import_label' => 'Import',
         'view_summary_detail' => 'Display the items of aggregated data',
+        'soft_deleted_data' => 'Deleted Data',
+        'restore' => 'Restore',
+        
         'import' => [
             'manual_id' => 'Data Import',
             'import_file' => 'Import File',
@@ -1390,6 +1397,8 @@ return [
             'operation_notfound' => 'The data to be updated was not found.',
             'operation_succeeded' => 'Batch update was performed.',
             'action_disabled' => 'Operations from the screen are restricted.',
+            'restore' => 'Are you sure to restore this item ?',
+            'restore_succeeded' => 'Restore succeeded !',
         ],
     ],
 
@@ -1554,6 +1563,7 @@ return [
             'invalid_user' => 'User with ID:%s does not exist.',
             'invalid_organization' => 'Organization with ID:%s does not exist.',
             'disapproval_ip' => 'Unauthorized IP address.',
+            'already_deleted' => 'Already deleted this data.',
         ],
 
         'help' =>[
@@ -1586,6 +1596,7 @@ return [
         'condition_target' => 'Condition Item',
         'condition_key' => 'Search Condition',
         'condition_value' => 'Condtion Value',
+        'condition_join' => 'Condtion Join',
         'condition_type_options' => [
             'user' => 'User',
             'organization' => 'Organization',
@@ -1602,6 +1613,11 @@ return [
             'number_lte' => 'Less Than or Equal',
             'day_on_or_after' => 'After',
             'day_on_or_before' => 'Before',
+        ],
+
+        'condition_join_options' => [
+            'and' => 'Match All Condition',
+            'or' => 'Match Any Condition',
         ],
     ],
 ];
