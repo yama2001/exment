@@ -1205,16 +1205,14 @@
                     "role_group_permission_type": "1",
                     "role_group_target_name": "user",
                     "permissions": [
-                        "custom_value_edit_all",
-                        "custom_value_view_trashed"
+                        "custom_value_edit_all"
                     ]
                 },
                 {
                     "role_group_permission_type": "1",
                     "role_group_target_name": "organization",
                     "permissions": [
-                        "custom_value_edit_all",
-                        "custom_value_view_trashed"
+                        "custom_value_edit_all"
                     ]
                 },
                 {
@@ -1235,8 +1233,7 @@
                     "role_group_permission_type": "1",
                     "role_group_target_name": "information",
                     "permissions": [
-                        "custom_value_edit_all",
-                        "custom_value_view_trashed"
+                        "custom_value_edit_all"
                     ]
                 }
             ]
