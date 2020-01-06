@@ -26,7 +26,7 @@ abstract class CustomValue extends ModelBase
     protected $casts = ['value' => 'json'];
     protected $appends = ['label'];
     protected $hidden = ['laravel_admin_escape'];
-    protected $keepRevisionOf = ['value', 'deleted_at'];
+    protected $keepRevisionOf = ['value'];
 
     /**
      * remove_file_columns.

@@ -314,8 +314,8 @@ trait CustomValueShow
 
         // create revision value
         $old_revision = Revision::findBySuuid($revision_suuid);
-        $revision_value = getModelName($this->custom_table)::find($id)->setRevision($revision_suuid);
-        $custom_value = getModelName($this->custom_table)::find($id);
+        $revision_value = getModelName($this->custom_table)::withTrashed()->find($id)->setRevision($revision_suuid);
+        $custom_value = getModelName($this->custom_table)::withTrashed()->find($id);
 
         // set table columns
         $table_columns = [];
@@ -341,7 +341,7 @@ trait CustomValueShow
             'old_revision' => $old_revision,
             'revision_suuid' => $revision_suuid,
             'has_edit_permission' => $custom_value->enableEdit(true) === true,
-            'form_url' => admin_urls('data', $table_name, $id, 'compare'),
+            'form_url' => admin_urls('data', $table_name, $id, 'compare' . (boolval(request()->get('trashed')) ? '?trashed=1' : '')),
             'has_diff' => collect($table_columns)->filter(function ($table_column) {
                 return array_get($table_column, 'diff', false);
             })->count() > 0
@@ -382,7 +382,7 @@ EOT;
             $form->html(
                 view('exment::form.field.revisionlink', [
                     'revision' => $revision,
-                    'link' => admin_urls('data', $this->custom_table->table_name, $id, 'compare?revision='.$revision->suuid),
+                    'link' => admin_urls('data', $this->custom_table->table_name, $id, 'compare?revision='.$revision->suuid . (boolval(request()->get('trashed')) ? '&trashed=1' : '')),
                     'index' => $index,
                 ])->render(),
                 'No.'.($revision->revision_no)
@@ -407,7 +407,7 @@ EOT;
     /**
      * whether comment field
      */
-    protected function useComment($modal = false)
+    protected function useComment($custom_value, $modal = false)
     {
         return !$modal && boolval($this->custom_table->getOption('comment_flg') ?? true);
     }
@@ -498,7 +498,7 @@ EOT;
     
     protected function setCommentBox($row, $custom_value, $id, $modal = false)
     {
-        $useComment = $this->useComment($modal);
+        $useComment = $this->useComment($custom_value, $modal);
         if (!$useComment) {
             return;
         }
@@ -524,11 +524,15 @@ EOT;
                 ->setWidth(8, 3);
         }
 
-        $form->textarea('comment', exmtrans("common.comment"))
+        if($custom_value->trashed()){
+            $form->disableSubmit();
+        }else{
+            $form->textarea('comment', exmtrans("common.comment"))
             ->rows(3)
             ->required()
             ->setLabelClass(['d-none'])
             ->setWidth(12, 0);
+        }
 
         $row->column(['xs' => 12, 'sm' => 6], (new Box(exmtrans("common.comment"), $form))->style('info'));
     }

@@ -114,6 +114,11 @@ class InitTestCommand extends Command
 
     protected function createUserOrg()
     {
+        \Illuminate\Database\Eloquent\Relations\Relation::morphMap([
+            'user' => ltrim(getModelName('user', true), "\\"),
+            'organization' => ltrim(getModelName('organization', true), "\\"),
+        ]);
+
         // set users
         $values = [
             'user' => [
@@ -368,6 +373,9 @@ class InitTestCommand extends Command
         $custom_table->table_view_name = $keyName;
 
         $custom_table->save();
+        \Illuminate\Database\Eloquent\Relations\Relation::morphMap([
+            $keyName => ltrim(getModelName($custom_table, true), "\\")
+        ]);
 
         $custom_column = new CustomColumn;
         $custom_column->custom_table_id = $custom_table->id;

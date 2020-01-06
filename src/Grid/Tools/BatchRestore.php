@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Grid\Tools;
 
+use Exceedone\Exment\Middleware;
 use Encore\Admin\Grid\Tools\BatchAction;
 
 class BatchRestore extends BatchAction
