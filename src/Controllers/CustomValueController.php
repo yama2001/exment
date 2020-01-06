@@ -728,7 +728,7 @@ class CustomValueController extends AdminControllerTableBase
             $custom_value = $this->custom_table->getValueModel($id);
             $code = $custom_value ? $custom_value->enableEdit(true) : $this->custom_table->getNoDataErrorCode($id);
         } elseif ($formActionType == CustomValuePageType::SHOW) {
-            $custom_value = $this->custom_table->getValueModel($id, boolval($request->get('trashed')));
+            $custom_value = $this->custom_table->getValueModel($id, boolval($request->get('trashed')) && $this->custom_table->enableShowTrashed() === true);
             $code = $custom_value ? $custom_value->enableAccess(true) : $this->custom_table->getNoDataErrorCode($id);
         } elseif ($formActionType == CustomValuePageType::GRID) {
             $code = $this->custom_table->enableView();

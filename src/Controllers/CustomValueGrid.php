@@ -65,7 +65,9 @@ trait CustomValueGrid
         }, 'left');
 
         $grid->filter(function ($filter) use ($search_enabled_columns) {
-            $filter->scope('trashed', exmtrans('custom_value.soft_deleted_data'))->onlyTrashed();
+            if($this->custom_table->enableShowTrashed() === true){
+                $filter->scope('trashed', exmtrans('custom_value.soft_deleted_data'))->onlyTrashed();
+            }
 
             $filter->disableIdFilter();
 
@@ -176,15 +178,16 @@ trait CustomValueGrid
             // manage batch --------------------------------------------------
             $tools->batch(function ($batch) {
                 // if cannot edit, disable delete and update operations
-                if ($this->custom_table->enableEdit()) {
+                if ($this->custom_table->enableEdit() === true) {
                     foreach ($this->custom_table->custom_operations as $custom_operation) {
                         $batch->add($custom_operation->operation_name, new GridTools\BatchUpdate($custom_operation));
                     }
-
-                    // append restore button
-                    $batch->add(exmtrans('custom_value.restore'), new GridTools\BatchRestore());
                 } else {
                     $batch->disableDelete();
+                }
+                
+                if (request()->get('_scope_') == 'trashed' && $this->custom_table->enableEdit() === true && $this->custom_table->enableShowTrashed() === true) {
+                    $batch->add(exmtrans('custom_value.restore'), new GridTools\BatchRestore());
                 }
             });
         });
@@ -216,7 +219,7 @@ trait CustomValueGrid
                 $actions->prepend($linker);
 
                 // append restore url
-                if ($actions->row->trashed()) {
+                if ($actions->row->trashed() && $custom_table->enableEdit() === true && $custom_table->enableShowTrashed() === true) {
                     $restoreUrl = $actions->row->getUrl() . '/restoreClick';
                     // add new edit link
                     $linker = (new Linker)

@@ -346,6 +346,10 @@ abstract class CustomValue extends ModelBase
         });
 
         static::deleted(function ($model) {
+            if($model->isForceDeleting()){
+                return;
+            }
+            
             $model->preSave();
             $model->postDelete();
 
