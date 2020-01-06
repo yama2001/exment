@@ -331,6 +331,7 @@ trait CustomValueShow
             ];
         }
 
+        $trashed = boolval(request()->get('trashed'));
         $prms = [
             'change_page_menu' => (new Tools\GridChangePageMenu('data', $this->custom_table, false))->render(),
             'revisions' => $revisions,
@@ -341,7 +342,8 @@ trait CustomValueShow
             'old_revision' => $old_revision,
             'revision_suuid' => $revision_suuid,
             'has_edit_permission' => $custom_value->enableEdit(true) === true,
-            'form_url' => admin_urls('data', $table_name, $id, 'compare' . (boolval(request()->get('trashed')) ? '?trashed=1' : '')),
+            'show_url' => $custom_value->getUrl() . ($trashed ? '?trashed=1' : ''),
+            'form_url' => admin_urls('data', $table_name, $id, 'compare'),
             'has_diff' => collect($table_columns)->filter(function ($table_column) {
                 return array_get($table_column, 'diff', false);
             })->count() > 0
@@ -353,8 +355,12 @@ trait CustomValueShow
         
         $script = <<<EOT
         $("#revisions").off('change').on('change', function(e, params) {
-            var url = admin_url(URLJoin('data', '$table_name', '$id', 'compare'));
-            var query = {'revision': $(e.target).val()};
+            let url = admin_url(URLJoin('data', '$table_name', '$id', 'compare'));
+            let query = {'revision': $(e.target).val()};
+
+            if($trashed){
+                query['trashed'] = 1;
+            }
 
             $.pjax({container:'#pjax-container-revision', url: url +'?' + $.param(query) });
         });
