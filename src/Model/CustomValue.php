@@ -13,6 +13,7 @@ use Exceedone\Exment\Enums\ValueType;
 use Exceedone\Exment\Enums\FormActionType;
 use Exceedone\Exment\Enums\ErrorCode;
 use Exceedone\Exment\Enums\JoinedOrgFilterType;
+use Exceedone\Exment\Enums\Permission;
 
 abstract class CustomValue extends ModelBase
 {
@@ -25,7 +26,7 @@ abstract class CustomValue extends ModelBase
     protected $casts = ['value' => 'json'];
     protected $appends = ['label'];
     protected $hidden = ['laravel_admin_escape'];
-    protected $keepRevisionOf = ['value'];
+    protected $keepRevisionOf = ['value', 'deleted_at'];
 
     /**
      * remove_file_columns.
@@ -91,6 +92,24 @@ abstract class CustomValue extends ModelBase
         // return resuly using cache
         return CustomTable::getEloquent($this->custom_table_name);
     }
+
+    public function getDeletedUserAttribute()
+    {
+        return $this->getUser('deleted_user_id');
+    }
+    public function getDeletedUserValueAttribute()
+    {
+        return $this->getUserValue('deleted_user_id');
+    }
+    public function getDeletedUserTagAttribute()
+    {
+        return $this->getUser('deleted_user_id', true);
+    }
+    public function getDeletedUserAvatarAttribute()
+    {
+        return $this->getUser('deleted_user_id', true, true);
+    }
+
     
     /**
      * Whether this model disable delete
@@ -315,7 +334,7 @@ abstract class CustomValue extends ModelBase
         });
 
         static::deleting(function ($model) {
-            static::setUser($model, ['deleted_user_id']);
+            $model->deleted_user_id = \Exment::user()->base_user_id;
 
             // saved_notify(as update) disable
             $saved_notify = $model->saved_notify;
@@ -331,6 +350,16 @@ abstract class CustomValue extends ModelBase
             $model->postDelete();
 
             $model->notify(NotifySavedType::DELETE);
+        });
+
+        static::restored(function ($model) {
+            $model->deleted_user_id = null;
+
+            // saved_notify(as update) disable
+            $saved_notify = $model->saved_notify;
+            $model->saved_notify = false;
+            $model->save();
+            $model->saved_notify = $saved_notify;
         });
 
         static::addGlobalScope(new CustomValueModelScope);
@@ -656,8 +685,10 @@ abstract class CustomValue extends ModelBase
         // delete role group
         RoleGroupUserOrganization::deleteRoleGroupUserOrganization($this);
 
-        // remove history
-        $this->revisionHistory()->delete();
+        // remove history if hard deleting
+        if($this->isForceDeleting()){
+            $this->revisionHistory()->delete();
+        }
     }
 
     /**
@@ -1224,7 +1255,7 @@ abstract class CustomValue extends ModelBase
         if (($code = $this->custom_table->enableEdit($checkFormAction)) !== true) {
             return $code;
         }
-
+        
         if (!$this->custom_table->hasPermissionEditData($this)) {
             return ErrorCode::PERMISSION_DENY();
         }
@@ -1237,11 +1268,15 @@ abstract class CustomValue extends ModelBase
         if ($this->lockedWorkflow()) {
             return ErrorCode::WORKFLOW_LOCK();
         }
-        
+
         if (!is_null($parent_value = $this->getParentValue()) && ($code = $parent_value->enableEdit($checkFormAction)) !== true) {
             return $code;
         }
 
+        if($this->trashed()){
+            return ErrorCode::ALREADY_DELETED();
+        }
+        
         return true;
     }
 
@@ -1275,6 +1310,45 @@ abstract class CustomValue extends ModelBase
         
         if (!is_null($parent_value = $this->getParentValue()) && ($code = $parent_value->enableDelete($checkFormAction)) !== true) {
             return $code;
+        }
+
+        return true;
+    }
+    
+    /**
+     * User can share this custom value
+     */
+    public function enableShare()
+    {
+        // if system doesn't use role, return false
+        if (!System::permission_available()) {
+            return false;
+        }
+
+        if($this->trashed()){
+            return false;
+        }
+        
+        $custom_table = $this->custom_table;
+
+        // if master, false
+        if (in_array($custom_table->table_name, SystemTableName::SYSTEM_TABLE_NAME_MASTER())) {
+            return false;
+        }
+
+        // if custom table has all_user_editable_flg, return false(not necessary use share)
+        if (boolval($custom_table->getOption('all_user_editable_flg'))) {
+            return false;
+        }
+
+        // if not has edit data, return false
+        if (!$custom_table->hasPermissionEditData($this)) {
+            return false;
+        }
+
+        // if not has share data, return false
+        if (!$custom_table->hasPermission(Permission::CUSTOM_VALUE_SHARE)) {
+            return false;
         }
 
         return true;

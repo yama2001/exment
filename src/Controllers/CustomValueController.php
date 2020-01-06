@@ -568,6 +568,44 @@ class CustomValueController extends AdminControllerTableBase
     }
 
     /**
+     * restore trashed value
+     */
+    public function restoreClick(Request $request, $tableKey, $id)
+    {
+        return restore($request, $tableKey, $id);
+    }
+
+    /**
+     * restore trashed value
+     */
+    public function rowRestore(Request $request, $tableKey)
+    {
+        return restore($request, $tableKey, $request->get('id'));
+    }
+
+    protected function restore(Request $request, $tableKey, $id){
+        // get customvalue
+        $custom_value = CustomTable::getEloquent($tableKey)->getValueModel($id, true);
+        if (!isset($custom_value)) {
+            return getAjaxResponse(false);
+        }
+
+        if(!$custom_value->trashed()){
+            return getAjaxResponse(true);
+        }
+        
+        if (($response = $this->firstFlow($request, CustomValuePageType::EDIT)) instanceof Response) {
+            return $response;
+        }
+
+        $custom_value->restore();
+        return getAjaxResponse([
+            'result'  => true,
+            'message' => exmtrans('custom_value.message.restore_succeeded'),
+        ]);
+    }
+
+    /**
      * set notify target users and  get form
      */
     public function sendTargetUsers(Request $request, $tableKey, $id = null)
@@ -678,7 +716,7 @@ class CustomValueController extends AdminControllerTableBase
             $custom_value = $this->custom_table->getValueModel($id);
             $code = $custom_value ? $custom_value->enableEdit(true) : $this->custom_table->getNoDataErrorCode($id);
         } elseif ($formActionType == CustomValuePageType::SHOW) {
-            $custom_value = $this->custom_table->getValueModel($id);
+            $custom_value = $this->custom_table->getValueModel($id, boolval($request->get('trashed')));
             $code = $custom_value ? $custom_value->enableAccess(true) : $this->custom_table->getNoDataErrorCode($id);
         } elseif ($formActionType == CustomValuePageType::GRID) {
             $code = $this->custom_table->enableView();

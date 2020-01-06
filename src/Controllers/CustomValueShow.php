@@ -24,6 +24,7 @@ use Exceedone\Exment\Enums\CustomValuePageType;
 use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\Permission;
+use Exceedone\Exment\Enums\ErrorCode;
 use Exceedone\Exment\Services\PartialCrudService;
 
 /**
@@ -150,6 +151,7 @@ trait CustomValueShow
             
             // if modal, disable list and delete
             $show->panel()->tools(function ($tools) use ($modal, $custom_value, $id) {
+                $enableEdit = $custom_value->enableEdit(true);
                 if ($custom_value->enableEdit(true) !== true) {
                     $tools->disableEdit();
                 }
@@ -192,37 +194,56 @@ trait CustomValueShow
                     $listButtons = Plugin::pluginPreparingButton($this->plugins, 'form_menubutton_show');
                     $copyButtons = $this->custom_table->from_custom_copies;
                     $notifies = $this->custom_table->notifies;
+     
+                    // only not trashed
+                    if(!$custom_value->trashed()){
+                        foreach ($listButtons as $plugin) {
+                            $tools->append(new Tools\PluginMenuButton($plugin, $this->custom_table, $id));
+                        }
 
-                    foreach ($listButtons as $plugin) {
-                        $tools->append(new Tools\PluginMenuButton($plugin, $this->custom_table, $id));
-                    }
-                    foreach ($custom_value->getWorkflowActions(true)->reverse() as $action) {
-                        $tools->append(new Tools\ModalMenuButton(
-                            admin_urls("data", $this->custom_table->table_name, $id, "actionModal"),
-                            [
-                                'label' => array_get($action, 'action_name'),
-                                'expand' => ['action_id' => array_get($action, 'id')],
-                                'button_class' => 'btn-success',
-                                'icon' => 'fa-check-square',
-                            ]
-                        ));
-                    }
-                    foreach ($copyButtons as $copyButton) {
-                        $b = new Tools\CopyMenuButton($copyButton, $this->custom_table, $id);
-                    
-                        $tools->append($b->toHtml());
-                    }
-                    foreach ($notifies as $notify) {
-                        if ($notify->isNotifyTarget($custom_value, NotifyTrigger::BUTTON)) {
-                            $tools->append(new Tools\NotifyButton($notify, $this->custom_table, $id));
+                        foreach ($custom_value->getWorkflowActions(true)->reverse() as $action) {
+                            $tools->append(new Tools\ModalMenuButton(
+                                admin_urls("data", $this->custom_table->table_name, $id, "actionModal"),
+                                [
+                                    'label' => array_get($action, 'action_name'),
+                                    'expand' => ['action_id' => array_get($action, 'id')],
+                                    'button_class' => 'btn-success',
+                                    'icon' => 'fa-check-square',
+                                ]
+                            ));
+                        }
+                            
+                        foreach ($copyButtons as $copyButton) {
+                            $b = new Tools\CopyMenuButton($copyButton, $this->custom_table, $id);
+                        
+                            $tools->append($b->toHtml());
+                        }
+                        foreach ($notifies as $notify) {
+                            if ($notify->isNotifyTarget($custom_value, NotifyTrigger::BUTTON)) {
+                                $tools->append(new Tools\NotifyButton($notify, $this->custom_table, $id));
+                            }
+                        }
+
+                        // check share permission.
+                        if ($custom_value->enableShare() === true) {
+                            $tools->append(new Tools\ShareButton($this->custom_table, $id));
                         }
                     }
-
-                    // check share permission.
-                    if ($this->hasPermissionShare($id)) {
-                        $tools->append(new Tools\ShareButton($this->custom_table, $id));
+                    // only trashed
+                    else{
+                        if($enableEdit === true || $enableEdit == ErrorCode::ALREADY_DELETED){
+                            // add restore button
+                            $tools->prepend(new Tools\SwalInputButton([
+                                'url' => admin_urls("data", $this->custom_table->table_name, $id, "restoreClick"),
+                                'label' => exmtrans('custom_value.restore'),
+                                'icon' => 'fa-undo',
+                                'btn_class' => 'btn-warning',
+                                'title' => exmtrans('custom_value.message.restore'),
+                                'method' => 'get',
+                            ]));
+                        }
                     }
-
+                    
                     PartialCrudService::setAdminShowTools($this->custom_table, $tools, $id);
                 }
             });
@@ -571,40 +592,5 @@ EOT;
             $query = $query->take(10);
         }
         return $query->get() ?? [];
-    }
-
-    /**
-     * Whether showing share button
-     *
-     * @return boolean
-     */
-    protected function hasPermissionShare($id)
-    {
-        // if system doesn't use role, return false
-        if (!System::permission_available()) {
-            return false;
-        }
-
-        // if master, false
-        if (in_array($this->custom_table->table_name, SystemTableName::SYSTEM_TABLE_NAME_MASTER())) {
-            return false;
-        }
-
-        // if custom table has all_user_editable_flg, return false(not necessary use share)
-        if (boolval($this->custom_table->getOption('all_user_editable_flg'))) {
-            return false;
-        }
-
-        // if not has edit data, return false
-        if (!$this->custom_table->hasPermissionEditData($id)) {
-            return false;
-        }
-
-        // if not has share data, return false
-        if (!$this->custom_table->hasPermission(Permission::CUSTOM_VALUE_SHARE)) {
-            return false;
-        }
-
-        return true;
     }
 }
