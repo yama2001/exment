@@ -65,7 +65,7 @@ class WorkflowAction extends ModelBase
             $result['work_target_type'] = $work_target_type;
         }
 
-        if ($work_target_type == WorkflowWorkTargetType::FIX) {
+        if (in_array($work_target_type, [WorkflowWorkTargetType::FIX, WorkflowWorkTargetType::BOSS])) {
             $authorities = WorkflowAuthority::where('workflow_action_id', $this->id)->get();
             $authorities->each(function ($v) use (&$result) {
                 $result[array_get($v, 'related_type')][] = array_get($v, 'related_id');
@@ -193,10 +193,13 @@ class WorkflowAction extends ModelBase
         }
         
         // target keys
-        $keys = [ConditionTypeDetail::USER()->lowerKey(),
+        $keys = [
+            ConditionTypeDetail::USER()->lowerKey(),
             ConditionTypeDetail::ORGANIZATION()->lowerKey(),
             ConditionTypeDetail::COLUMN()->lowerKey(),
             ConditionTypeDetail::SYSTEM()->lowerKey(),
+            ConditionTypeDetail::USERTABLE_COLUMN()->lowerKey(),
+            ConditionTypeDetail::ORGANIZATIONTABLE_COLUMN()->lowerKey(),
         ];
         foreach ($keys as $key) {
             $ids = array_get($this->work_targets, $key, []);
@@ -424,49 +427,12 @@ class WorkflowAction extends ModelBase
 
         foreach ($workflow_authorities as $workflow_authority) {
             $type = ConditionTypeDetail::getEnum($workflow_authority->related_type);
-            switch ($type) {
-                case ConditionTypeDetail::USER:
-                    $userIds[] = $workflow_authority->related_id;
-                    break;
+            $item = $type->getConditionItem($custom_value->custom_table, null);
 
-                case ConditionTypeDetail::ORGANIZATION:
-                    $organizationIds[] = $workflow_authority->related_id;
-                    break;
-
-                case ConditionTypeDetail::SYSTEM:
-                    if ($getAsDefine) {
-                        $labels[] = exmtrans('common.' . WorkflowTargetSystem::getEnum($workflow_authority->related_id)->lowerKey());
-                        break;
-                    }
-
-                    if ($workflow_authority->related_id == WorkflowTargetSystem::CREATED_USER) {
-                        $userIds[] = $custom_value->created_user_id;
-                    }
-                    break;
-                    
-                case ConditionTypeDetail::COLUMN:
-                    $column = CustomColumn::getEloquent($workflow_authority->related_id);
-
-                    if ($getAsDefine) {
-                        $labels[] = $column->column_view_name ?? null;
-                        break;
-                    }
-
-                    $column_values = $custom_value->getValue($column->column_name);
-
-                    if ($column_values instanceof CustomValue) {
-                        $column_values = [$column_values];
-                    }
-
-                    foreach ($column_values as $column_value) {
-                        if ($column->column_type == ColumnType::USER) {
-                            $userIds[] = $column_value->id;
-                        } else {
-                            $organizationIds[] = $column_value->id;
-                        }
-                    }
-                    break;
-            }
+            $item->setAuthorityTargets($workflow_authority, $custom_value, $userIds, $organizationIds, $labels, [
+                'orgAsUser' => $orgAsUser,
+                'getAsDefine' => $getAsDefine,
+            ]);
         }
 
         $result = collect();

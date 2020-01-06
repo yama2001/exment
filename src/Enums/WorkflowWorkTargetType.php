@@ -6,7 +6,7 @@ class WorkflowWorkTargetType extends EnumBase
 {
     const ACTION_SELECT = "action_select";
     const FIX = "fix";
-
+    const BOSS = "boss";
 
     public static function getTargetTypeDefault($index)
     {

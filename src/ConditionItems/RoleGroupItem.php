@@ -77,4 +77,17 @@ class RoleGroupItem extends ConditionItemBase implements ConditionItemInterface
         $ids = $targetUser->belong_role_groups->pluck('id')->toArray();
         return in_array($workflow_authority->related_id, $ids);
     }
+    
+    /**
+     * Set Authority Targets
+     *
+     * @param WorkflowAuthority $workflow_authority
+     * @param CustomValue $custom_value
+     * @param array $userIds
+     * @param array $organizationIds
+     * @param array $labels
+     * @return void
+     */
+    public function setAuthorityTargets($workflow_authority, $custom_value, &$userIds, &$organizationIds, &$labels, $options = []){
+    }
 }

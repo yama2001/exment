@@ -74,6 +74,13 @@ abstract class CustomValue extends ModelBase
             ;
     }
 
+    public function workflow_values()
+    {
+        return $this->hasMany(WorkflowValue::class, 'morph_id')
+            ->where('morph_type', $this->custom_table->table_name)
+            ;
+    }
+
     public function getLabelAttribute()
     {
         return $this->getLabel();

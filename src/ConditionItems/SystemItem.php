@@ -50,10 +50,31 @@ class SystemItem extends ConditionItemBase implements ConditionItemInterface
 
     public static function setConditionQuery($query, $tableName, $custom_table, $authorityTableName = SystemTableName::WORKFLOW_AUTHORITY)
     {
-        $query->orWhere(function ($query) use ($tableName, $authorityTableName) {
-            $query->where($authorityTableName . '.related_id', WorkflowTargetSystem::CREATED_USER)
-                ->where($authorityTableName . '.related_type', ConditionTypeDetail::SYSTEM()->lowerkey())
-                ->where($tableName . '.created_user_id', \Exment::user()->id);
-        });
+        $query->where($authorityTableName . '.related_id', WorkflowTargetSystem::CREATED_USER)
+            ->where($authorityTableName . '.related_type', ConditionTypeDetail::SYSTEM()->lowerkey())
+            ->where($tableName . '.created_user_id', \Exment::user()->id);
+    }
+    
+    
+    /**
+     * Set Authority Targets
+     *
+     * @param WorkflowAuthority $workflow_authority
+     * @param CustomValue $custom_value
+     * @param array $userIds
+     * @param array $organizationIds
+     * @param array $labels
+     * @return void
+     */
+    public function setAuthorityTargets($workflow_authority, $custom_value, &$userIds, &$organizationIds, &$labels, $options = []){
+        $getAsDefine = array_get($options, 'getAsDefine', false);
+        if ($getAsDefine) {
+            $labels[] = exmtrans('common.' . WorkflowTargetSystem::getEnum($workflow_authority->related_id)->lowerKey());
+            return;
+        }
+
+        if ($workflow_authority->related_id == WorkflowTargetSystem::CREATED_USER) {
+            $userIds[] = $custom_value->created_user_id;
+        }
     }
 }

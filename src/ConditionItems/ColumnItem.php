@@ -87,13 +87,11 @@ class ColumnItem extends ConditionItemBase implements ConditionItemInterface
         if (!ColumnType::isUserOrganization($custom_column->column_type)) {
             return false;
         }
-        $auth_values = array_get($custom_value, 'value.' . $custom_column->column_name);
+        $auth_values = $this->getAuthValues($custom_value, $custom_column);
         if (is_null($auth_values)) {
             return false;
         }
-        if (!is_array($auth_values)) {
-            $auth_values = [$auth_values];
-        }
+        $auth_values = (array)$auth_values;
 
         switch ($custom_column->column_type) {
             case ColumnType::USER:
@@ -105,6 +103,17 @@ class ColumnItem extends ConditionItemBase implements ConditionItemInterface
                 });
         }
         return false;
+    }
+
+    /**
+     * Get Auth values for hasAuthority
+     *
+     * @param CustomValue $custom_value
+     * @param CustomColumn $custom_column
+     * @return array|null
+     */
+    protected function getAuthValues($custom_value, $custom_column){
+        return array_get($custom_value, 'value.' . $custom_column->column_name);
     }
     
     /**
@@ -118,6 +127,9 @@ class ColumnItem extends ConditionItemBase implements ConditionItemInterface
      */
     public static function setConditionQuery($query, $tableName, $custom_table, $authorityTableName = SystemTableName::WORKFLOW_AUTHORITY)
     {
+        $custom_table = static::getTargetTableConditionQuery($custom_table);
+        $relatedType = static::getRelatedTypeConditionQuery();
+
         /// get user or organization list
         $custom_columns = CustomColumn::allRecordsCache(function ($custom_column) use ($custom_table) {
             if ($custom_table->id != $custom_column->custom_table_id) {
@@ -132,20 +144,78 @@ class ColumnItem extends ConditionItemBase implements ConditionItemInterface
             return true;
         });
 
-        $ids = \Exment::user()->base_user->belong_organizations->pluck('id')->toArray();
-        foreach ($custom_columns as $custom_column) {
-            $query->orWhere(function ($query) use ($custom_column, $tableName, $ids, $authorityTableName) {
-                $indexName = $custom_column->getIndexColumnName();
-                
-                $query->where($authorityTableName . '.related_id', $custom_column->id)
-                    ->where($authorityTableName . '.related_type', ConditionTypeDetail::COLUMN()->lowerkey());
-                    
-                if ($custom_column->column_type == ColumnType::USER) {
-                    $query->where($tableName . '.' . $indexName, \Exment::user()->id);
-                } else {
-                    $query->whereIn($tableName . '.' . $indexName, $ids);
-                }
-            });
+        if(count($custom_columns) == 0){
+            $query->whereRaw('1 = 0');
+            return;
         }
+
+        $org_ids = \Exment::user()->base_user->belong_organizations->pluck('id')->toArray();
+        foreach ($custom_columns as $custom_column) {
+            $userIndexName = static::getUserIndexNameConditionQuery($custom_column);
+            $orgIndexName = static::getOrgIndexNameConditionQuery($custom_column);
+            
+            $query->where($authorityTableName . '.related_id', $custom_column->id)
+                ->where($authorityTableName . '.related_type', $relatedType);
+                
+            if ($custom_column->column_type == ColumnType::USER) {
+                $query->where($userIndexName, \Exment::user()->id);
+            } else {
+                $query->whereIn($orgIndexName, $org_ids);
+            }
+        }
+    }
+
+    /**
+     * Set Authority Targets
+     *
+     * @param WorkflowAuthority $workflow_authority
+     * @param CustomValue $custom_value
+     * @param array $userIds
+     * @param array $organizationIds
+     * @param array $labels
+     * @return void
+     */
+    public function setAuthorityTargets($workflow_authority, $custom_value, &$userIds, &$organizationIds, &$labels, $options = []){
+        $getAsDefine = array_get($options, 'getAsDefine', false);
+        
+        $custom_column = CustomColumn::getEloquent($workflow_authority->related_id);
+        if(!isset($custom_column)){
+            return;
+        }
+
+        if ($getAsDefine) {
+            $labels[] = $custom_column->column_view_name ?? null;
+            return;
+        }
+
+        $auth_values = $this->getAuthValues($custom_value, $custom_column);
+        if (is_null($auth_values)) {
+            return;
+        }
+        $auth_values = (array)$auth_values;
+
+        foreach ($auth_values as $auth_value) {
+            if ($custom_column->column_type == ColumnType::USER) {
+                $userIds[] = $auth_value;
+            } else {
+                $organizationIds[] = $auth_value;
+            }
+        }
+    }
+    
+    protected static function getTargetTableConditionQuery($custom_table){
+        return $custom_table;
+    }
+    
+    protected static function getRelatedTypeConditionQuery(){
+        return ConditionTypeDetail::COLUMN()->lowerkey();
+    }
+    
+    protected static function getUserIndexNameConditionQuery($custom_column){
+        return $custom_column->getIndexColumnName();
+    }
+
+    protected static function getOrgIndexNameConditionQuery($custom_column){
+        return $custom_column->getIndexColumnName();
     }
 }

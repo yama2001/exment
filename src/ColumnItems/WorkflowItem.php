@@ -9,6 +9,8 @@ use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Model\Workflow;
 use Exceedone\Exment\Model\WorkflowStatus;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\CustomRelation;
+use Exceedone\Exment\ConditionItems\WorkflowQuery;
 
 class WorkflowItem extends SystemItem
 {
@@ -120,170 +122,33 @@ class WorkflowItem extends SystemItem
         static::$addWorkUsersSubQuery = true;
 
         $tableName = getDBTableName($custom_table);
+        $userTableName = getDBTableName(SystemTableName::USER);
+        $orgPivotName = CustomRelation::getRelationNamebyTables(SystemTableName::ORGANIZATION, SystemTableName::USER);
 
-        /////// first query. not has workflow value's custom value
-        $subquery = \DB::table($tableName)
-        ->join(SystemTableName::WORKFLOW_TABLE, function ($join) use ($tableName, $custom_table) {
-            $join->where(SystemTableName::WORKFLOW_TABLE . '.custom_table_id', $custom_table->id)
-                ->where(SystemTableName::WORKFLOW_TABLE . '.active_flg', 1)
-                ;
-        })
-        ->join(SystemTableName::WORKFLOW, function ($join) {
-            $join->on(SystemTableName::WORKFLOW_TABLE . '.workflow_id', SystemTableName::WORKFLOW . ".id")
-                ;
-        })
-        ->join(SystemTableName::WORKFLOW_ACTION, function ($join) {
-            $join->on(SystemTableName::WORKFLOW_ACTION . '.workflow_id', SystemTableName::WORKFLOW . ".id")
-                ->where(SystemTableName::WORKFLOW_ACTION . '.status_from', Define::WORKFLOW_START_KEYNAME)
-                ;
-        })
-        ->join(SystemTableName::WORKFLOW_AUTHORITY, function ($join) {
-            $join->on(SystemTableName::WORKFLOW_AUTHORITY . '.workflow_action_id', SystemTableName::WORKFLOW_ACTION . ".id")
-                ;
-        })->whereNotExists(function ($query) use ($tableName, $custom_table) {
-            $escapeTableName = \esc_sqlTable($tableName);
-            $query->select(\DB::raw(1))
-                    ->from(SystemTableName::WORKFLOW_VALUE)
-                    ->whereRaw(SystemTableName::WORKFLOW_VALUE . '.morph_id = ' . $escapeTableName .'.id')
-                    ->where(SystemTableName::WORKFLOW_VALUE . '.morph_type', $custom_table->table_name)
-                    ->where(SystemTableName::WORKFLOW_VALUE . '.latest_flg', 1)
-                    ;
-        })
-        ///// add authority function for user or org
-        ->where(function ($query) use ($tableName, $custom_table) {
-            $classes = [
-                \Exceedone\Exment\ConditionItems\UserItem::class,
-                \Exceedone\Exment\ConditionItems\OrganizationItem::class,
-                \Exceedone\Exment\ConditionItems\ColumnItem::class,
-                \Exceedone\Exment\ConditionItems\SystemItem::class,
-            ];
+        $queryClasses = [
+            WorkflowQuery\NotHasWorkflowValueQuery::class,
+            WorkflowQuery\WorkflowValueQuery::class,
+            WorkflowQuery\WorkflowValueAuthorityQuery::class,
+            WorkflowQuery\BossUserQuery::class,
+        ];
 
-            foreach ($classes as $class) {
-                $class::setConditionQuery($query, $tableName, $custom_table);
+        $subqueries = [];
+        foreach($queryClasses as $queryClass){
+            $subqueries = array_merge($queryClass::getSubQuery($query, $tableName, $custom_table), $subqueries);
+        }
+
+        $subquery = $subqueries[0];
+        foreach($subqueries as $index => $s){
+            if($index == 0){
+                continue;
             }
-        })
-        ->distinct()
-        ->select([$tableName .'.id  as morph_id']);
 
+            $subquery->union($s);
+        }
 
-
-
-        /////// second query. has workflow value's custom value
-        $subquery2 = \DB::table($tableName)
-        ->join(SystemTableName::WORKFLOW_VALUE, function ($join) use ($tableName, $custom_table) {
-            $join->on(SystemTableName::WORKFLOW_VALUE . '.morph_id', $tableName .'.id')
-                ->where(SystemTableName::WORKFLOW_VALUE . '.morph_type', $custom_table->table_name)
-                ->where(SystemTableName::WORKFLOW_VALUE . '.latest_flg', 1);
-        })
-        ->join(SystemTableName::WORKFLOW_TABLE, function ($join) use ($tableName, $custom_table) {
-            $join->where(SystemTableName::WORKFLOW_TABLE . '.custom_table_id', $custom_table->id)
-                ->where(SystemTableName::WORKFLOW_TABLE . '.active_flg', 1)
-                ;
-        })
-        ->join(SystemTableName::WORKFLOW, function ($join) {
-            $join->on(SystemTableName::WORKFLOW_TABLE . '.workflow_id', SystemTableName::WORKFLOW . ".id")
-            ->on(SystemTableName::WORKFLOW_VALUE . '.workflow_id', SystemTableName::WORKFLOW . ".id")
-                ;
-        })
-        ->join(SystemTableName::WORKFLOW_ACTION, function ($join) {
-            $join
-            ->on(SystemTableName::WORKFLOW_ACTION . '.workflow_id', SystemTableName::WORKFLOW . ".id")
-            ->where('ignore_work', false)
-            ->where(function ($query) {
-                $query->where(function ($query) {
-                    $query->where(SystemTableName::WORKFLOW_ACTION . '.status_from', Define::WORKFLOW_START_KEYNAME)
-                        ->whereNull(SystemTableName::WORKFLOW_VALUE . '.workflow_status_to_id')
-                    ;
-                })->orWhere(function ($query) {
-                    $query->where(SystemTableName::WORKFLOW_ACTION . '.status_from', \DB::raw(SystemTableName::WORKFLOW_VALUE . '.workflow_status_to_id'))
-                    ;
-                });
-            });
-        })
-        ->join(SystemTableName::WORKFLOW_AUTHORITY, function ($join) {
-            $join->on(SystemTableName::WORKFLOW_AUTHORITY . '.workflow_action_id', SystemTableName::WORKFLOW_ACTION . ".id")
-                ;
-        })
-        ///// add authority function for user or org
-        ->where(function ($query) use ($tableName, $custom_table) {
-            $classes = [
-                \Exceedone\Exment\ConditionItems\UserItem::class,
-                \Exceedone\Exment\ConditionItems\OrganizationItem::class,
-                \Exceedone\Exment\ConditionItems\ColumnItem::class,
-                \Exceedone\Exment\ConditionItems\SystemItem::class,
-            ];
-
-            foreach ($classes as $class) {
-                $class::setConditionQuery($query, $tableName, $custom_table);
-            }
-        })
-        ->distinct()
-        ->select([$tableName .'.id  as morph_id']);
-
-        /////// third query. has workflow value's custom value and workflow value authorities
-        $subquery3 = \DB::table($tableName)
-        ->join(SystemTableName::WORKFLOW_VALUE, function ($join) use ($tableName, $custom_table) {
-            $join->on(SystemTableName::WORKFLOW_VALUE . '.morph_id', $tableName .'.id')
-                ->where(SystemTableName::WORKFLOW_VALUE . '.morph_type', $custom_table->table_name)
-                ->where(SystemTableName::WORKFLOW_VALUE . '.latest_flg', 1);
-        })
-        ->join(SystemTableName::WORKFLOW_TABLE, function ($join) use ($tableName, $custom_table) {
-            $join->where(SystemTableName::WORKFLOW_TABLE . '.custom_table_id', $custom_table->id)
-                ->where(SystemTableName::WORKFLOW_TABLE . '.active_flg', 1)
-                ;
-        })
-        ->join(SystemTableName::WORKFLOW, function ($join) {
-            $join->on(SystemTableName::WORKFLOW_TABLE . '.workflow_id', SystemTableName::WORKFLOW . ".id")
-            ->on(SystemTableName::WORKFLOW_VALUE . '.workflow_id', SystemTableName::WORKFLOW . ".id")
-                ;
-        })
-        ->join(SystemTableName::WORKFLOW_ACTION, function ($join) {
-            $join
-            ->on(SystemTableName::WORKFLOW_ACTION . '.workflow_id', SystemTableName::WORKFLOW . ".id")
-            ->where('ignore_work', false)
-            ->where(function ($query) {
-                $query->where(function ($query) {
-                    $query->where(SystemTableName::WORKFLOW_ACTION . '.status_from', Define::WORKFLOW_START_KEYNAME)
-                        ->whereNull(SystemTableName::WORKFLOW_VALUE . '.workflow_status_to_id')
-                    ;
-                })->orWhere(function ($query) {
-                    $query->where(SystemTableName::WORKFLOW_ACTION . '.status_from', \DB::raw(SystemTableName::WORKFLOW_VALUE . '.workflow_status_to_id'))
-                    ;
-                });
-            });
-        })
-        ->join(SystemTableName::WORKFLOW_VALUE_AUTHORITY, function ($join) {
-            $join->on(SystemTableName::WORKFLOW_VALUE_AUTHORITY . '.workflow_value_id', SystemTableName::WORKFLOW_VALUE . ".id")
-                ;
-        })
-        ///// add authority function for user or org
-        ->where(function ($query) use ($tableName, $custom_table) {
-            $classes = [
-                \Exceedone\Exment\ConditionItems\UserItem::class,
-                \Exceedone\Exment\ConditionItems\OrganizationItem::class,
-                \Exceedone\Exment\ConditionItems\ColumnItem::class,
-                \Exceedone\Exment\ConditionItems\SystemItem::class,
-            ];
-
-            foreach ($classes as $class) {
-                $class::setConditionQuery($query, $tableName, $custom_table, SystemTableName::WORKFLOW_VALUE_AUTHORITY);
-            }
-        })
-
-
-        
-
-        ->union($subquery)
-        ->union($subquery2)
-        
-        ->distinct()
-        ->select([$tableName .'.id as morph_id']);
- 
-        $query->joinSub($subquery3, 'workflow_values_wf', function ($join) use ($tableName) {
+        $query->joinSub($subquery, 'workflow_values_wf', function ($join) use ($tableName) {
             $join->on($tableName . '.id', 'workflow_values_wf.morph_id');
         });
-
-        //$query = \DB::query()->fromSub($query, 'sub');
     }
 
     /**

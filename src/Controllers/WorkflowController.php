@@ -20,6 +20,7 @@ use Exceedone\Exment\Model\WorkflowStatus;
 use Exceedone\Exment\Model\WorkflowTable;
 use Exceedone\Exment\Model\Condition;
 use Exceedone\Exment\Model\Notify;
+use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\MailKeyName;
 use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Enums\NotifyAction;
@@ -827,6 +828,12 @@ class WorkflowController extends AdminControllerBase
         $workflow = Workflow::getEloquent($id);
         $custom_table = $workflow->getDesignatedTable();
 
+        // USER and ORG array
+        $userOrgArray = [ColumnType::USER];
+        if(System::organization_available()){
+            $userOrgArray[] = ColumnType::ORGANIZATION;
+        }
+
         // get selected value
         $value = $request->get('workflow_actions_work_targets');
         $value = jsonToArray($value);
@@ -838,7 +845,8 @@ class WorkflowController extends AdminControllerBase
                 if ($index > 0) {
                     $options = [
                         WorkflowWorkTargetType::ACTION_SELECT => WorkflowWorkTargetType::ACTION_SELECT()->transKey('workflow.work_target_type_options'),
-                        WorkflowWorkTargetType::FIX => WorkflowWorkTargetType::FIX()->transKey('workflow.work_target_type_options')
+                        WorkflowWorkTargetType::FIX => WorkflowWorkTargetType::FIX()->transKey('workflow.work_target_type_options'),
+                        WorkflowWorkTargetType::BOSS => WorkflowWorkTargetType::BOSS()->transKey('workflow.work_target_type_options'),
                     ];
                     $help = exmtrans('workflow.help.work_targets2');
                     $default = WorkflowWorkTargetType::FIX;
@@ -856,13 +864,13 @@ class WorkflowController extends AdminControllerBase
         // set custom column
         if (isset($custom_table)) {
             $options = $custom_table->custom_columns()
-                ->whereIn('column_type', [ColumnType::USER, ColumnType::ORGANIZATION])
+                ->whereIn('column_type', $userOrgArray)
                 ->indexEnabled()
                 ->pluck('column_view_name', 'id');
 
             $form->multipleSelect('modal_' . ConditionTypeDetail::COLUMN()->lowerkey(), exmtrans('common.custom_column'))
                 ->options($options)
-                ->attribute(['data-filter' => json_encode(['key' => 'work_target_type', 'value' => 'fix'])])
+                ->attribute(['data-filter' => json_encode(['key' => 'work_target_type', 'value' => WorkflowWorkTargetType::FIX])])
                 ->default(array_get($value, ConditionTypeDetail::COLUMN()->lowerkey()));
         }
 
@@ -873,8 +881,25 @@ class WorkflowController extends AdminControllerBase
         }
         $form->multipleSelect('modal_' . ConditionTypeDetail::SYSTEM()->lowerkey(), exmtrans('common.system'))
             ->options(WorkflowTargetSystem::transKeyArray('common'))
-            ->attribute(['data-filter' => json_encode(['key' => 'work_target_type', 'value' => 'fix'])])
+            ->attribute(['data-filter' => json_encode(['key' => 'work_target_type', 'value' => WorkflowWorkTargetType::FIX])])
             ->default($modal_system_default);
+
+
+        ///// superior selects
+        foreach($userOrgArray as $userOrg){
+            $userOrgTable = CustomTable::getEloquent($userOrg);
+            $options = $userOrgTable->custom_columns()
+                ->whereIn('column_type', [ColumnType::USER, ColumnType::ORGANIZATION])
+                ->indexEnabled()
+                ->pluck('column_view_name', 'id');
+
+            $form->multipleSelect('modal_' . $userOrg . 'table_column', $userOrgTable->table_view_name)
+                ->options($options)
+                ->attribute(['data-filter' => json_encode(['key' => 'work_target_type', 'value' => WorkflowWorkTargetType::BOSS])])
+                ->default(array_get($value, $userOrg . 'table_column'));
+            ;
+        }
+
 
         $form->hidden('valueModalUuid')->default($request->get('widgetmodal_uuid'));
 
