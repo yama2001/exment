@@ -18,6 +18,7 @@ class ConditionHasManyTable
     protected $custom_table;
     protected $label;
     protected $useJoinOptions = true;
+    protected $useJoinOptionAttribute;
 
     protected $callbackField;
 
@@ -113,9 +114,13 @@ class ConditionHasManyTable
         }
 
         if ($this->useJoinOptions) {
-            $this->form->radio($this->condition_join_name, exmtrans("condition.condition_join"))
+            $radioField = $this->form->radio($this->condition_join_name, exmtrans("condition.condition_join"))
             ->options(exmtrans("condition.condition_join_options"))
             ->default('and');
+
+            if(isset($this->useJoinOptionAttribute)){
+                $radioField->attribute($this->useJoinOptionAttribute);
+            }
         }
 
         if (isset($this->callbackField)) {

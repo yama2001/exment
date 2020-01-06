@@ -25,6 +25,8 @@ class AddOptionsToFilters extends Migration
                 $table->json('options')->nullable()->after('order');
             });
         }
+        
+        \Artisan::call('exment:patchdata', ['action' => 'parent_org_type']);
     }
 
     /**

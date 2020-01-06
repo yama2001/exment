@@ -985,6 +985,7 @@ class WorkflowController extends AdminControllerBase
                     'custom_table' => $custom_table,
                     'filterKind' => FilterKind::WORKFLOW,
                     'condition_join_name' => "condition_join_{$index}",
+                    'useJoinOptionAttribute' => ['data-filter' => json_encode(['key' => "enabled_flg_{$index}", 'value' => '1'])],
                 ]);
 
                 $hasManyTable->callbackField(function ($field) use ($default, $index) {
