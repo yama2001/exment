@@ -232,6 +232,20 @@ trait CustomValueShow
                     // only trashed
                     else{
                         if($enableEdit === true || $enableEdit == ErrorCode::ALREADY_DELETED){
+                            $tools->disableDelete();
+
+                            // add hard delete button
+                            $tools->prepend(new Tools\SwalInputButton([
+                                'url' => admin_urls("data", $this->custom_table->table_name, $id),
+                                'label' => exmtrans('custom_value.hard_delete'),
+                                'icon' => 'fa-trash',
+                                'btn_class' => 'btn-danger',
+                                'title' => exmtrans('custom_value.hard_delete'),
+                                'text' => exmtrans('custom_value.message.hard_delete'),
+                                'method' => 'delete',
+                                'redirectUrl' => admin_urls("data", $this->custom_table->table_name),
+                            ]));
+
                             // add restore button
                             $tools->prepend(new Tools\SwalInputButton([
                                 'url' => admin_urls("data", $this->custom_table->table_name, $id, "restoreClick"),
@@ -358,7 +372,7 @@ trait CustomValueShow
             let url = admin_url(URLJoin('data', '$table_name', '$id', 'compare'));
             let query = {'revision': $(e.target).val()};
 
-            if($trashed){
+            if('$trashed' == true){
                 query['trashed'] = 1;
             }
 

@@ -1336,6 +1336,7 @@ return [
         'view_summary_detail' => '集計データの明細を表示する',
         'soft_deleted_data' => '削除済データ',
         'restore' => '復元',
+        'hard_delete' => '完全に削除する',
         
         'import' => [
             'manual_id' => 'データインポート',
@@ -1399,6 +1400,7 @@ return [
             'action_disabled' => '画面からの操作が制限されています。',
             'restore' => '復元しますか？',
             'restore_succeeded' => '復元が完了しました！',
+            'hard_delete' => '完全に削除しますか？(この操作は復元できません)',
         ],
     ],
 
