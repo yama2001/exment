@@ -213,6 +213,7 @@ return [
         'org_joined_type_role_group' => 'Organization Tree Setting(Role Group)',
         'org_joined_type_custom_value' => 'Organization Tree Setting(Data)',
         'custom_value_save_autoshare' => 'Data Share Setting',
+        'filter_joined_organization' => 'Filtering by organization',
         'ip_filter' => 'IP Filter Setting',
         'web_ip_filters' => 'Web Page',
         'api_ip_filters' => 'API',
@@ -296,6 +297,7 @@ return [
             'org_joined_type_custom_value' => 'When the organization is set in the sharing settings for each custom data, set the scope to include the organization of the parent-child hierarchy.',
             'custom_value_save_autoshare' => 'Set the automatic sharing method when users create new custom data. The default is only the logged-in user, and it can be shared with your organization depending on the setting.',
             'ip_filter' => 'Set the IP address to allow communication. Fixed IP (example: 12.3.5.6) and range specification format (example: 123.4.5.0/24) can be used. If it is not set, all IP addresses are allowed. <br /> If you want to set more than one, please separate them with line breaks.',
+            'filter_joined_organization' => 'When displaying users and organizations, perform filtering by the organization to which the login user belongs.',
         ],
     ],
 
