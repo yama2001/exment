@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\JoinedOrgFilterType;
+use Exceedone\Exment\Model\CustomRelation;
 
 class CustomValueModelScope implements Scope
 {
@@ -21,6 +22,7 @@ class CustomValueModelScope implements Scope
     public function apply(Builder $builder, Model $model)
     {
         $table_name = $model->custom_table->table_name;
+        $db_table_name = getDBTableName($table_name);
         // get user info
         $user = \Exment::user();
         // if not have, check as login
@@ -33,13 +35,35 @@ class CustomValueModelScope implements Scope
             return;
         }
 
+        // if system administrator user, return
+        if ($user->hasPermission(Permission::SYSTEM)) {
+            return;
         // if user can access list, return
-        if ($table_name == SystemTableName::USER) {
-            //TODO
-            return;
+        } if ($table_name == SystemTableName::USER) {
+            if (System::filter_joined_organization()) {
+                // get only login user's organization user
+                $builder
+                    ->whereExists(function ($builder) use ($user, $db_table_name) {
+                        $db_table_name_pivot = CustomRelation::getRelationNameByTables(SystemTableName::ORGANIZATION, SystemTableName::USER);
+                        $builder->select(\DB::raw(1))
+                            ->from($db_table_name_pivot)
+                            ->whereIn("$db_table_name_pivot.parent_id", $user->getOrganizationIds(JoinedOrgFilterType::ONLY_JOIN))
+                            ->whereRaw("$db_table_name_pivot.child_id = $db_table_name.id");
+                    })
+                    ->orWhere('id', $user->base_user_id);
+            } else {
+                return;
+            }
         } elseif ($table_name == SystemTableName::ORGANIZATION) {
-            //TODO
-            return;
+            if (System::filter_joined_organization()) {
+                // get only login user's organization
+                $builder
+                    ->where(function ($builder) use ($user) {
+                        $builder->whereIn('id', $user->getOrganizationIds(JoinedOrgFilterType::ONLY_JOIN));
+                    });
+            } else {
+                return;
+            }
         // Add document skip logic
         } elseif ($table_name == SystemTableName::DOCUMENT) {
             //TODO

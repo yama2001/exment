@@ -69,6 +69,7 @@ class Define
         'org_joined_type_role_group' => ['type' => 'int', 'default' => '99', 'group' => 'system'],
         'org_joined_type_custom_value' => ['type' => 'int', 'default' => '0', 'group' => 'system'],
         'custom_value_save_autoshare' => ['type' => 'int', 'default' => '0', 'group' => 'system'],
+        'filter_joined_organization' => ['type' => 'boolean', 'group' => 'system', 'default' => false],
         
         // cannot call getValue function
         'backup_enable_automatic' => ['type' => 'boolean', 'default' => '0', 'group' => 'backup'],

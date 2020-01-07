@@ -166,6 +166,9 @@ trait InitializeFormTrait
                 ->default(CustomValueAutoShare::USER_ONLY)
                 ;
 
+            $form->switchbool('filter_joined_organization', exmtrans("system.filter_joined_organization"))
+                ->help(exmtrans("system.help.filter_joined_organization"));
+    
             // use mail setting
             if (!boolval(config('exment.mail_setting_env_force', false))) {
                 $form->exmheader(exmtrans('system.system_mail'))->hr();

@@ -215,6 +215,7 @@ return [
         'org_joined_type_role_group' => '組織階層設定(役割グループ)',
         'org_joined_type_custom_value' => '組織階層設定(データ)',
         'custom_value_save_autoshare' => 'カスタムデータ共有設定',
+        'filter_joined_organization' => '所属組織によるフィルタリング',
         'ip_filter' => 'IPフィルタ設定',
         'web_ip_filters' => 'Webページ',
         'api_ip_filters' => 'API',
@@ -298,6 +299,7 @@ return [
             'org_joined_type_custom_value' => '各カスタムデータの共有設定に組織を設定したとき、親子階層の組織を含める範囲を設定します。',
             'custom_value_save_autoshare' => 'ユーザーがカスタムデータを新規作成時の、自動共有方法を設定します。既定はログインユーザーのみで、設定により、所属組織にも共有することができます。',
             'ip_filter' => '通信を許可するIPアドレスを設定します。固定IP（例：12.3.5.6）、および範囲指定形式（例：123.4.5.0/24）が使用できます。未設定の場合は、すべてのIPアドレスを許可します。<br />複数設定する場合は改行で区切ってください。',
+            'filter_joined_organization' => 'ユーザー・組織を表示する際にログインユーザーの所属組織によるフィルタリングを行います。',
         ],
     ],
 

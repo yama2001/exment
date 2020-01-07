@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Services;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\RoleGroup;
+use Exceedone\Exment\Model\CustomValueModelScope;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\RoleType;
@@ -281,7 +282,13 @@ class AuthUserOrgHelper
             $indexName = $modelname::getParentOrgIndexName();
 
             // get query
-            $orgs = $modelname::with('users')->get(['id', $indexName])->toArray();
+            $orgs = $modelname::with([
+                'users' => function ($query) {
+                        return $query->withoutGlobalScope(CustomValueModelScope::class);
+                    }
+                ])
+                ->withoutGlobalScopes([CustomValueModelScope::class])
+                ->get(['id', $indexName])->toArray();
             $baseOrgs = $orgs;
 
             if (is_nullorempty($orgs)) {
