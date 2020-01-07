@@ -355,6 +355,7 @@ trait CustomValueShow
             'newest_revision_suuid' => $newest_revision_suuid,
             'old_revision' => $old_revision,
             'revision_suuid' => $revision_suuid,
+            'trashed' => $trashed || !is_nullorempty(array_get($newest_revision, 'deleted_at')) || !is_nullorempty(array_get($old_revision, 'deleted_at')),
             'has_edit_permission' => $custom_value->enableEdit(true) === true,
             'show_url' => $custom_value->getUrl() . ($trashed ? '?trashed=1' : ''),
             'form_url' => admin_urls('data', $table_name, $id, 'compare'),

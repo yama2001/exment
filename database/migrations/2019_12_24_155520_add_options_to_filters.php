@@ -25,7 +25,18 @@ class AddOptionsToFilters extends Migration
                 $table->json('options')->nullable()->after('order');
             });
         }
-        
+
+        if(Schema::hasTable('revisions')){
+            Schema::table('revisions', function (Blueprint $table) {
+                if(!Schema::hasColumn('revisions', 'deleted_at')){
+                    $table->timestamp('deleted_at', 0)->nullable()->after('updated_at');
+                }
+                if(!Schema::hasColumn('revisions', 'delete_user_id')){
+                    $table->unsignedInteger('delete_user_id', 0)->nullable()->after('create_user_id');
+                }
+            });
+        }
+
         \Artisan::call('exment:patchdata', ['action' => 'parent_org_type']);
     }
 
@@ -41,6 +52,10 @@ class AddOptionsToFilters extends Migration
         });
         Schema::table('custom_form_priorities', function($table) {
             $table->dropColumn('options');
+        });
+        Schema::table('revisions', function($table) {
+            $table->dropColumn('deleted_at');
+            $table->dropColumn('delete_user_id');
         });
     }
 }

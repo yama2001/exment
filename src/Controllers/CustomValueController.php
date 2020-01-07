@@ -607,6 +607,8 @@ class CustomValueController extends AdminControllerTableBase
 
                 $custom_value->restore();
             }
+            
+            \DB::commit();
         } catch (\Exception $e) {
             \DB::rollback();
         }

@@ -27,6 +27,7 @@ abstract class CustomValue extends ModelBase
     protected $appends = ['label'];
     protected $hidden = ['laravel_admin_escape'];
     protected $keepRevisionOf = ['value'];
+    protected $keepRevisionOfTrigger = ['deleted_at' => 'value'];
 
     /**
      * remove_file_columns.
@@ -364,6 +365,8 @@ abstract class CustomValue extends ModelBase
             $model->saved_notify = false;
             $model->save();
             $model->saved_notify = $saved_notify;
+
+            $model->postRestore();
         });
 
         static::addGlobalScope(new CustomValueModelScope);
