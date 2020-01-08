@@ -205,11 +205,8 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     /**
      * set laravel-admin grid using custom_view
      */
-    public function setGrid($grid, $filter_func = null)
+    public function setGrid($grid)
     {
-        // filter
-        \Exment::user()->filterModel($grid->model(), $this, $filter_func);
-
         $custom_table = $this->custom_table;
         // get view columns
         $custom_view_columns = $this->custom_view_columns_cache;

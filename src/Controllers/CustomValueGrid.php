@@ -39,10 +39,12 @@ trait CustomValueGrid
         // get search_enabled_columns and loop
         $search_enabled_columns = $this->custom_table->getSearchEnabledColumns();
 
+        // filter
+        \Exment::user()->filterModel($grid->model(), $this->custom_view, $filter_func);
         $this->setCustomGridFilters($grid, $search_enabled_columns);
-    
+
         // create grid
-        $this->custom_view->setGrid($grid, $filter_func);
+        $this->custom_view->setGrid($grid);
 
         // manage row action
         $this->manageRowAction($grid);
