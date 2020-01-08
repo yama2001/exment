@@ -32,6 +32,7 @@ use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\WorkflowType;
 use Exceedone\Exment\Enums\WorkflowTargetSystem;
 use Exceedone\Exment\Enums\WorkflowWorkTargetType;
+use Exceedone\Exment\Enums\WorkflowBossTargetType;
 use Exceedone\Exment\Enums\ConditionTypeDetail;
 use Exceedone\Exment\Form\Tools\ConditionHasManyTable;
 use Exceedone\Exment\Form\Tools;
@@ -884,8 +885,7 @@ class WorkflowController extends AdminControllerBase
             ->attribute(['data-filter' => json_encode(['key' => 'work_target_type', 'value' => WorkflowWorkTargetType::FIX])])
             ->default($modal_system_default);
 
-
-        ///// superior selects
+        ///// superior(BOSS) selects
         foreach($userOrgArray as $userOrg){
             $userOrgTable = CustomTable::getEloquent($userOrg);
             $options = $userOrgTable->custom_columns()
@@ -899,6 +899,12 @@ class WorkflowController extends AdminControllerBase
                 ->default(array_get($value, $userOrg . 'table_column'));
             ;
         }
+
+        $form->radio('boss_target_type', exmtrans('workflow.boss_target_type'))
+            ->options(WorkflowBossTargetType::transKeyArray('workflow.boss_target_type_options'))
+            ->default(array_get($value, 'boss_target_type') ?? WorkflowBossTargetType::CREATED_USER)
+            ->attribute(['data-filter' => json_encode(['key' => 'work_target_type', 'value' => WorkflowWorkTargetType::BOSS])])
+            ;
 
 
         $form->hidden('valueModalUuid')->default($request->get('widgetmodal_uuid'));

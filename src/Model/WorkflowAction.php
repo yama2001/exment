@@ -59,10 +59,15 @@ class WorkflowAction extends ModelBase
     public function getWorkTargetsAttribute()
     {
         $result = [];
-        $work_target_type = $this->getOption('work_target_type');
 
+        $work_target_type = $this->getOption('work_target_type');
         if (isset($work_target_type)) {
             $result['work_target_type'] = $work_target_type;
+        }
+
+        $boss_target_type = $this->getOption('boss_target_type');
+        if (isset($boss_target_type)) {
+            $result['boss_target_type'] = $boss_target_type;
         }
 
         if (in_array($work_target_type, [WorkflowWorkTargetType::FIX, WorkflowWorkTargetType::BOSS])) {
@@ -185,10 +190,24 @@ class WorkflowAction extends ModelBase
      */
     protected function setActionAuthority()
     {
+        $updateFlg = false;
+        
+        // update to option this model's option
         $work_target_type = array_get($this->work_targets, 'work_target_type');
         if (isset($work_target_type)) {
             $this->setOption('work_target_type', $work_target_type);
             array_forget($this->work_targets, 'work_target_type');
+            $updateFlg = true;
+        }
+        
+        $boss_target_type = array_get($this->work_targets, 'boss_target_type');
+        if (isset($boss_target_type)) {
+            $this->setOption('boss_target_type', $boss_target_type);
+            array_forget($this->work_targets, 'boss_target_type');
+            $updateFlg = true;
+        }
+
+        if($updateFlg){
             $this->save();
         }
         

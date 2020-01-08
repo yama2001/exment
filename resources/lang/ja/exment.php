@@ -622,6 +622,7 @@ return [
         'work_targets' => '実行可能ユーザー',
         'work_targets_select' => '実行可能ユーザー選択',
         'work_conditions' => 'アクション設定',
+        'boss_target_type' => '上長の判定方法',
         'condition' => '条件',
         'flow_next_type' => '次のステータスへ進む条件',
         'upper_user' => '人以上実行',
@@ -684,6 +685,10 @@ return [
             'action_select' => '前アクションの実行ユーザーが選択',
             'fix' => '事前に設定',
             'boss' => '上長',
+        ],
+        'boss_target_type_options' => [
+            'created_user' => 'データ作成ユーザーの上長',
+            'executed_action_user' => '前アクション実行ユーザーの上長',
         ],
     ],
 

@@ -16,7 +16,7 @@ use Exceedone\Exment\Model\CustomRelation;
 
 class WorkflowValueQuery extends WorkflowQueryBase  
 {
-    public static function getSubQuery($query, $tableName, $custom_table, $authorities)
+    public static function getSubQuery($query, $tableName, $custom_table, $authorities, $options = [])
     {
         $tableName = getDBTableName($custom_table);
         $userTableName = getDBTableName(SystemTableName::USER);

@@ -29,4 +29,6 @@ abstract class WorkflowQueryBase
             return array_get((array)$authority, 'related_type') == $key;
         });
     }
+
+    abstract public static function getSubQuery($query, $tableName, $custom_table, $authorities, $options = []);
 }

@@ -133,7 +133,7 @@ class WorkflowItem extends SystemItem
             ['class' => WorkflowQuery\NotHasWorkflowValueQuery::class, 'authorities' => $targetAuthorities],
             ['class' => WorkflowQuery\WorkflowValueQuery::class, 'authorities' => $targetAuthorities],
             ['class' => WorkflowQuery\WorkflowValueAuthorityQuery::class, 'authorities' => $targetValueAuthorities],
-            ['class' => WorkflowQuery\BossUserQuery::class, 'authorities' => []],
+            ['class' => WorkflowQuery\BossUserQuery::class, 'authorities' => $targetAuthorities],
         ];
 
         $subqueries = [];
