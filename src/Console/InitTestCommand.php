@@ -15,8 +15,11 @@ use Exceedone\Exment\Model\WorkflowValue;
 use Exceedone\Exment\Model\WorkflowConditionHeader;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\CustomViewColumn;
+use Exceedone\Exment\Model\CustomViewFilter;
 use Exceedone\Exment\Model\CustomForm;
 use Exceedone\Exment\Model\CustomFormPriority;
+use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\Condition;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\Notify;
@@ -29,6 +32,10 @@ use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\WorkflowWorkTargetType;
 use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\ConditionTypeDetail;
+use Exceedone\Exment\Enums\ViewType;
+use Exceedone\Exment\Enums\ViewKindType;
+use Exceedone\Exment\Enums\ViewColumnType;
+use Exceedone\Exment\Enums\FilterOption;
 use Laravel\Passport\ClientRepository;
 
 class InitTestCommand extends Command
@@ -445,6 +452,8 @@ class InitTestCommand extends Command
             $custom_form_condition->save();
         }
 
+        $this->createView($custom_table, $custom_column, $custom_column2, $custom_column3, $custom_column4, $custom_column5);
+        
         $notify_id = $this->createNotify($custom_table);
 
         System::custom_value_save_autoshare(CustomValueAutoShare::USER_ORGANIZATION);
@@ -509,6 +518,66 @@ class InitTestCommand extends Command
             "mail_template_id" => "6"];
         $notify->save();
         return $notify->id;
+    }
+    
+    /**
+     * Create View
+     *
+     * @return void
+     */
+    protected function createView($custom_table, ...$custom_columns)
+    {
+        foreach (['and', 'or'] as $join_type) {
+            // create view
+            $custom_view = new CustomView;
+            $custom_view->custom_table_id = $custom_table->id;
+            $custom_view->view_view_name = $custom_table->table_name . ' view ' . $join_type;
+            $custom_view->view_type = ViewType::SYSTEM;
+            $custom_view->view_kind_type = ViewKindType::DEFAULT;
+            $custom_view->options = ['condition_join' => $join_type];
+            $custom_view->save();
+            $order = 1;
+            foreach ($custom_columns as $custom_column) {
+                if ($custom_column->column_type == ColumnType::TEXT) {
+                    $custom_view_column = new CustomViewColumn;
+                    $custom_view_column->custom_view_id = $custom_view->id;
+                    $custom_view_column->view_column_type = ConditionType::COLUMN;
+                    $custom_view_column->view_column_table_id = $custom_table->id;
+                    $custom_view_column->view_column_target_id = $custom_column->id;
+                    $custom_view_column->order = $order;
+                    $custom_view_column->save();
+                    $order++;
+                    if ($custom_column->column_view_name == 'odd_even') {
+                        $custom_view_filter = new CustomViewFilter;
+                        $custom_view_filter->custom_view_id = $custom_view->id;
+                        $custom_view_filter->view_column_type = ConditionType::COLUMN;
+                        $custom_view_filter->view_column_table_id = $custom_table->id;
+                        $custom_view_filter->view_column_target_id = $custom_column->id;
+                        $custom_view_filter->view_filter_condition = FilterOption::NE;
+                        $custom_view_filter->view_filter_condition_value_text = 'odd';
+                        $custom_view_filter->save();
+                    }
+                } elseif ($custom_column->column_type == ColumnType::YESNO)  {
+                    $custom_view_filter = new CustomViewFilter;
+                    $custom_view_filter->custom_view_id = $custom_view->id;
+                    $custom_view_filter->view_column_type = ConditionType::COLUMN;
+                    $custom_view_filter->view_column_table_id = $custom_table->id;
+                    $custom_view_filter->view_column_target_id = $custom_column->id;
+                    $custom_view_filter->view_filter_condition = FilterOption::EQ;
+                    $custom_view_filter->view_filter_condition_value_text = 1;
+                    $custom_view_filter->save();
+                } elseif ($custom_column->column_type == ColumnType::USER)  {
+                    $custom_view_filter = new CustomViewFilter;
+                    $custom_view_filter->custom_view_id = $custom_view->id;
+                    $custom_view_filter->view_column_type = ConditionType::COLUMN;
+                    $custom_view_filter->view_column_table_id = $custom_table->id;
+                    $custom_view_filter->view_column_target_id = $custom_column->id;
+                    $custom_view_filter->view_filter_condition = FilterOption::USER_EQ;
+                    $custom_view_filter->view_filter_condition_value_text = 2;
+                    $custom_view_filter->save();
+                }
+            }
+        }
     }
     
     /**
