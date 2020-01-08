@@ -214,6 +214,15 @@ class InitTestCommand extends Command
                     ],
                     'password' => 'company2-userF',
                 ],
+                'userG' => [
+                    'id' => 11,
+                    'value' => [
+                        'user_name' => 'org1-org2-userg',
+                        'user_code' => 'userG',
+                        'email' => 'userG@user.foobar.test',
+                    ],
+                    'password' => 'userGuserG',
+                ],
             ],
 
             'organization' => [
@@ -286,6 +295,28 @@ class InitTestCommand extends Command
                         'organization_name' => 'company2-a',
                         'organization_code' => 'company2-a',
                         'parent_organization' => 6,
+                    ],
+                ],
+                'org1' => [
+                    'id' => 8,
+                    'value' => [
+                        'organization_name' => 'org1',
+                        'organization_code' => 'org1',
+                        'parent_organization' => null,
+                    ],
+                    'users' => [
+                        11
+                    ],
+                ],
+                'org2' => [
+                    'id' => 9,
+                    'value' => [
+                        'organization_name' => 'org2',
+                        'organization_code' => 'org2',
+                        'parent_organization' => 8,
+                    ],
+                    'users' => [
+                        11
                     ],
                 ],
             ]
