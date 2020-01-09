@@ -23,6 +23,7 @@ use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\Condition;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\Notify;
+use Exceedone\Exment\Model\Menu;
 use Exceedone\Exment\Model\NotifyNavbar;
 use Exceedone\Exment\Model\RoleGroupPermission;
 use Exceedone\Exment\Model\RoleGroupUserOrganization;
@@ -346,6 +347,19 @@ class InitTestCommand extends Command
 
     protected function createTables($users)
     {
+        // create parent id
+        $menu = Menu::create([
+            'parent_id' => 0,
+            'order' => 92,
+            'title' => 'TestTables',
+            'icon' => 'fa-table',
+            'uri' => '#',
+            'menu_type' => 'parent_node',
+            'menu_name' => 'TestTables',
+            'menu_target' => null,
+        ]);
+
+
         // create test table
         $permissions = [
             Permission::CUSTOM_VALUE_EDIT_ALL,
@@ -357,17 +371,17 @@ class InitTestCommand extends Command
 
         $tables = [];
         foreach ($permissions as $permission) {
-            $custom_table = $this->createTable('roletest_' . $permission, $users);
+            $custom_table = $this->createTable('roletest_' . $permission, $users, $menu->id);
             $tables[$permission] = $custom_table;
         }
 
         // NO permission
-        $this->createTable('no_permission', $users);
+        $this->createTable('no_permission', $users, $menu->id);
 
         return $tables;
     }
 
-    protected function createTable($keyName, $users)
+    protected function createTable($keyName, $users, $menuParentId)
     {
         // create table
         $custom_table = new CustomTable;
@@ -486,6 +500,18 @@ class InitTestCommand extends Command
                 }
             }
         }
+
+        // create table menu
+        Menu::create([
+            'parent_id' => $menuParentId,
+            'order' => 0,
+            'title' => $keyName,
+            'icon' => 'fa-table',
+            'uri' => $keyName,
+            'menu_type' => 'table',
+            'menu_name' => $keyName,
+            'menu_target' => $custom_table->id,
+        ]);
 
         return $custom_table;
     }

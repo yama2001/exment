@@ -29,6 +29,7 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
 
     protected $appends = ['menu_target_view'];
     protected $casts = ['options' => 'json'];
+    protected $fillable = ['parent_id', 'order', 'title', 'icon', 'uri', 'permission', 'menu_type', 'menu_name', 'menu_target'];
 
     public static $templateItems = [
         'excepts' => [
