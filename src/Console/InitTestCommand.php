@@ -371,7 +371,7 @@ class InitTestCommand extends Command
 
         $tables = [];
         foreach ($permissions as $permission) {
-            $custom_table = $this->createTable('roletest_' . $permission, $users, $menu->id);
+            $custom_table = $this->createTable($permission, $users, $menu->id);
             $tables[$permission] = $custom_table;
         }
 
@@ -553,26 +553,67 @@ class InitTestCommand extends Command
      */
     protected function createView($custom_table, ...$custom_columns)
     {
+        // create view
+        $custom_view = new CustomView;
+        $custom_view->custom_table_id = $custom_table->id;
+        $custom_view->view_view_name = $custom_table->table_name . '-view-all';
+        $custom_view->view_type = ViewType::SYSTEM;
+        $custom_view->view_kind_type = ViewKindType::ALLDATA;
+        $custom_view->save();
+        $order = 1;
+        
+        $custom_view_column = new CustomViewColumn;
+        $custom_view_column->custom_view_id = $custom_view->id;
+        $custom_view_column->view_column_type = ConditionType::SYSTEM;
+        $custom_view_column->view_column_table_id = $custom_table->id;
+        $custom_view_column->view_column_target_id = 1; // SystemColumn::id
+        $custom_view_column->order = $order;
+        $custom_view_column->save();
+        $order++;
+
+        foreach ($custom_columns as $custom_column) {
+            $custom_view_column = new CustomViewColumn;
+            $custom_view_column->custom_view_id = $custom_view->id;
+            $custom_view_column->view_column_type = ConditionType::COLUMN;
+            $custom_view_column->view_column_table_id = $custom_table->id;
+            $custom_view_column->view_column_target_id = $custom_column->id;
+            $custom_view_column->order = $order;
+            $custom_view_column->save();
+            $order++;
+        }
+    
+        // create andor
         foreach (['and', 'or'] as $join_type) {
             // create view
             $custom_view = new CustomView;
             $custom_view->custom_table_id = $custom_table->id;
-            $custom_view->view_view_name = $custom_table->table_name . ' view ' . $join_type;
+            $custom_view->view_view_name = $custom_table->table_name . '-view-' . $join_type;
             $custom_view->view_type = ViewType::SYSTEM;
             $custom_view->view_kind_type = ViewKindType::DEFAULT;
             $custom_view->options = ['condition_join' => $join_type];
             $custom_view->save();
             $order = 1;
+
+            $custom_view_column = new CustomViewColumn;
+            $custom_view_column->custom_view_id = $custom_view->id;
+            $custom_view_column->view_column_type = ConditionType::SYSTEM;
+            $custom_view_column->view_column_table_id = $custom_table->id;
+            $custom_view_column->view_column_target_id = 1; // SystemColumn::id
+            $custom_view_column->order = $order;
+            $custom_view_column->save();
+            $order++;
+
             foreach ($custom_columns as $custom_column) {
+                $custom_view_column = new CustomViewColumn;
+                $custom_view_column->custom_view_id = $custom_view->id;
+                $custom_view_column->view_column_type = ConditionType::COLUMN;
+                $custom_view_column->view_column_table_id = $custom_table->id;
+                $custom_view_column->view_column_target_id = $custom_column->id;
+                $custom_view_column->order = $order;
+                $custom_view_column->save();
+                $order++;
+
                 if ($custom_column->column_type == ColumnType::TEXT) {
-                    $custom_view_column = new CustomViewColumn;
-                    $custom_view_column->custom_view_id = $custom_view->id;
-                    $custom_view_column->view_column_type = ConditionType::COLUMN;
-                    $custom_view_column->view_column_table_id = $custom_table->id;
-                    $custom_view_column->view_column_target_id = $custom_column->id;
-                    $custom_view_column->order = $order;
-                    $custom_view_column->save();
-                    $order++;
                     if ($custom_column->column_view_name == 'odd_even') {
                         $custom_view_filter = new CustomViewFilter;
                         $custom_view_filter->custom_view_id = $custom_view->id;
@@ -734,7 +775,7 @@ class InitTestCommand extends Command
     
                 'tables' => [
                     [
-                        'custom_table' => 'roletest_custom_value_edit_all',
+                        'custom_table' => 'custom_value_edit_all',
                     ],
                     [
                         'custom_table' => 'no_permission',
@@ -816,7 +857,7 @@ class InitTestCommand extends Command
     
                 'tables' => [
                     [
-                        'custom_table' => 'roletest_custom_value_access_all',
+                        'custom_table' => 'custom_value_access_all',
                     ],
                 ],
             ],
@@ -925,7 +966,7 @@ class InitTestCommand extends Command
     
                 'tables' => [
                     [
-                        'custom_table' => 'roletest_custom_value_edit',
+                        'custom_table' => 'custom_value_edit',
                     ],
                 ],
             ],
@@ -1049,7 +1090,7 @@ class InitTestCommand extends Command
     
                         $latest_flg = count($wfValueStatuses) - 1 === $index;
 
-                        if ($table['custom_table'] == 'roletest_custom_value_edit_all') {
+                        if ($table['custom_table'] == 'custom_value_edit_all') {
                             if ($index === 1) {
                                 $latest_flg = true;
                             } else {
@@ -1090,7 +1131,7 @@ class InitTestCommand extends Command
         // add for organization work user
         $wfValue = new WorkflowValue;
         $wfValue->workflow_id = $workflowObj->id;
-        $wfValue->morph_type = 'roletest_custom_value_edit';
+        $wfValue->morph_type = 'custom_value_edit';
         $wfValue->morph_id = 1;
         $wfValue->workflow_action_id = 6;
         $wfValue->workflow_status_to_id = 6;

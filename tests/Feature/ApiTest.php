@@ -170,7 +170,7 @@ class ApiTest extends ApiTestBase
         $this->assertTrue(!\is_nullorempty($data));
         $this->assertTrue(
                 collect($data)->contains(function($d){
-                    return array_get($d, 'table_name') == 'roletest_custom_value_edit';
+                    return array_get($d, 'table_name') == 'custom_value_edit';
                 })
             );
         $this->assertTrue(
@@ -207,7 +207,7 @@ class ApiTest extends ApiTestBase
 
         $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->get(admin_urls('api', 'table', 'roletest_custom_value_edit'))
+        ])->get(admin_urls('api', 'table', 'custom_value_edit'))
             ->assertStatus(200);
     }
 
@@ -225,7 +225,7 @@ class ApiTest extends ApiTestBase
 
         $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->get(admin_urls('api', 'table', 'roletest_custom_value_edit'))
+        ])->get(admin_urls('api', 'table', 'custom_value_edit'))
             ->assertStatus(200);
     }
 
@@ -364,7 +364,7 @@ class ApiTest extends ApiTestBase
 
         $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->get(admin_urls('api', 'data', 'roletest_custom_value_edit'))
+        ])->get(admin_urls('api', 'data', 'custom_value_edit'))
             ->assertStatus(200);
     }
 
@@ -373,7 +373,7 @@ class ApiTest extends ApiTestBase
 
         $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->get(admin_urls('api', 'data', 'roletest_custom_value_access_all').'?page=3')
+        ])->get(admin_urls('api', 'data', 'custom_value_access_all').'?page=3')
             ->assertStatus(200)
             ->assertJsonCount(20, 'data');
     }
@@ -383,7 +383,7 @@ class ApiTest extends ApiTestBase
 
         $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->get(admin_urls('api', 'data', 'roletest_custom_value_access_all').'?count=3')
+        ])->get(admin_urls('api', 'data', 'custom_value_access_all').'?count=3')
             ->assertStatus(200)
             ->assertJsonCount(3, 'data');
     }
@@ -393,7 +393,7 @@ class ApiTest extends ApiTestBase
 
         $response = $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->get(admin_urls('api', 'data', 'roletest_custom_value_access_all').'?orderby=user%20desc,id%20asc')
+        ])->get(admin_urls('api', 'data', 'custom_value_access_all').'?orderby=user%20desc,id%20asc')
             ->assertStatus(200);
 
         $json = json_decode($response->baseResponse->getContent(), true);
@@ -407,7 +407,7 @@ class ApiTest extends ApiTestBase
 
         $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->get(admin_urls('api', 'data', 'roletest_custom_value_edit').'?id=1,2,4')
+        ])->get(admin_urls('api', 'data', 'custom_value_edit').'?id=1,2,4')
             ->assertStatus(200)
             ->assertJsonCount(3, 'data');
     }
@@ -417,7 +417,7 @@ class ApiTest extends ApiTestBase
 
         $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->get(admin_urls('api', 'data', 'roletest_custom_value_edit'))
+        ])->get(admin_urls('api', 'data', 'custom_value_edit'))
             ->assertStatus(403)
             ->assertJsonFragment([
                 'code' => ErrorCode::WRONG_SCOPE
@@ -429,7 +429,7 @@ class ApiTest extends ApiTestBase
 
         $response = $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->get(admin_urls('api', 'data', 'roletest_custom_value_access_all').'?orderby=id%20besc')
+        ])->get(admin_urls('api', 'data', 'custom_value_access_all').'?orderby=id%20besc')
             ->assertStatus(400)
             ->assertJsonFragment([
                 'code' => ErrorCode::INVALID_PARAMS
@@ -441,7 +441,7 @@ class ApiTest extends ApiTestBase
 
         $response = $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->get(admin_urls('api', 'data', 'roletest_custom_value_access_all').'?orderby=text')
+        ])->get(admin_urls('api', 'data', 'custom_value_access_all').'?orderby=text')
             ->assertStatus(400)
             ->assertJsonFragment([
                 'code' => ErrorCode::NOT_INDEX_ENABLED
@@ -515,7 +515,7 @@ class ApiTest extends ApiTestBase
         $text = 'test' . date('YmdHis');
         $response = $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->post(admin_urls('api', 'data', 'roletest_custom_value_edit'), [
+        ])->post(admin_urls('api', 'data', 'custom_value_edit'), [
             'value' => [
                 'text' => $text,
                 'user' => 2,
@@ -534,16 +534,16 @@ class ApiTest extends ApiTestBase
 
     public function testCreateMultipleValue(){
         $token = $this->getAdminAccessToken([ApiScope::VALUE_WRITE]);
-        $pre_count = CustomTable::getEloquent('roletest_custom_value_edit')->getValueModel()->count();
+        $pre_count = CustomTable::getEloquent('custom_value_edit')->getValueModel()->count();
         $values = [];
         for ($i = 1; $i <= 3; $i++) {
             $values[] = ['text' => 'test' . date('YmdHis') . $i];
         }
         $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->post(admin_urls('api', 'data', 'roletest_custom_value_edit'), ['value' => $values])
+        ])->post(admin_urls('api', 'data', 'custom_value_edit'), ['value' => $values])
             ->assertStatus(200);
-        $count = CustomTable::getEloquent('roletest_custom_value_edit')->getValueModel()->count();
+        $count = CustomTable::getEloquent('custom_value_edit')->getValueModel()->count();
         $this->assertTrue(($pre_count + 3) == $count);
     }
 
@@ -553,7 +553,7 @@ class ApiTest extends ApiTestBase
         $text = 'test' . date('YmdHis');
         $response = $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->post(admin_urls('api', 'data', 'roletest_custom_value_edit'), [
+        ])->post(admin_urls('api', 'data', 'custom_value_edit'), [
             'value' => [
                 'text' => $text,
                 'user' => 'user3'
@@ -579,7 +579,7 @@ class ApiTest extends ApiTestBase
         $text = 'test' . date('YmdHis');
         $response = $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->post(admin_urls('api', 'data', 'roletest_custom_value_edit'), [
+        ])->post(admin_urls('api', 'data', 'custom_value_edit'), [
             'novalue' => [
                 'text' => $text
             ]
@@ -598,7 +598,7 @@ class ApiTest extends ApiTestBase
         }
         $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->post(admin_urls('api', 'data', 'roletest_custom_value_edit'), ['value' => $values])
+        ])->post(admin_urls('api', 'data', 'custom_value_edit'), ['value' => $values])
             ->assertStatus(400);
     }
 
@@ -608,7 +608,7 @@ class ApiTest extends ApiTestBase
         $text = 'test' . date('YmdHis');
         $response = $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->post(admin_urls('api', 'data', 'roletest_custom_value_edit'), [
+        ])->post(admin_urls('api', 'data', 'custom_value_edit'), [
             'value' => [
                 'text' => $text
             ]
@@ -625,7 +625,7 @@ class ApiTest extends ApiTestBase
         $text = 'test' . date('YmdHis');
         $response = $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->post(admin_urls('api', 'data', 'roletest_custom_value_edit'), [
+        ])->post(admin_urls('api', 'data', 'custom_value_edit'), [
             'value' => [
                 'text' => $text,
                 'user' => 'user3'
@@ -643,7 +643,7 @@ class ApiTest extends ApiTestBase
         $text = 'test' . date('YmdHis');
         $response = $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->post(admin_urls('api', 'data', 'roletest_custom_value_edit'), [
+        ])->post(admin_urls('api', 'data', 'custom_value_edit'), [
             'value' => [
                 'text' => $text,
                 'user' => 'bjlfjadflvjlav'
@@ -661,7 +661,7 @@ class ApiTest extends ApiTestBase
         $text = 'test' . date('YmdHis');
         $response = $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->post(admin_urls('api', 'data', 'roletest_custom_value_edit'), [
+        ])->post(admin_urls('api', 'data', 'custom_value_edit'), [
             'value' => [
                 'user' => 3
             ]
@@ -673,7 +673,7 @@ class ApiTest extends ApiTestBase
     }
 
     public function testUpdateValue(){
-        $data = CustomTable::getEloquent('roletest_custom_value_edit')->getValueModel()
+        $data = CustomTable::getEloquent('custom_value_edit')->getValueModel()
             ->where('updated_user_id', '<>', '1')->first();
         $index_text = array_get($data->value, 'index_text');
 
@@ -682,7 +682,7 @@ class ApiTest extends ApiTestBase
         $text = 'test' . date('YmdHis') . '_update';
         $response = $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->put(admin_urls('api', 'data', 'roletest_custom_value_edit', $data->id), [
+        ])->put(admin_urls('api', 'data', 'custom_value_edit', $data->id), [
             'value' => [
                 'text' => $text,
                 'user' => 3,
@@ -701,7 +701,7 @@ class ApiTest extends ApiTestBase
     }
 
     public function testUpdateValueWithFindKey(){
-        $data = CustomTable::getEloquent('roletest_custom_value_edit')->getValueModel()
+        $data = CustomTable::getEloquent('custom_value_edit')->getValueModel()
             ->where('updated_user_id', '<>', '2')->first();
         $old_text = array_get($data->value, 'text');
         $index_text = array_get($data->value, 'index_text');
@@ -711,7 +711,7 @@ class ApiTest extends ApiTestBase
         $text = 'test' . date('YmdHis') . '_update';
         $response = $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->put(admin_urls('api', 'data', 'roletest_custom_value_edit', $data->id), [
+        ])->put(admin_urls('api', 'data', 'custom_value_edit', $data->id), [
             'value' => [
                 'user' => 'dev1-userD',
             ],
@@ -738,7 +738,7 @@ class ApiTest extends ApiTestBase
 
         $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->put(admin_urls('api', 'data', 'roletest_custom_value_edit', '99999'), [
+        ])->put(admin_urls('api', 'data', 'custom_value_edit', '99999'), [
             'value' => [
                 'text' => $text,
             ]
@@ -750,7 +750,7 @@ class ApiTest extends ApiTestBase
     }
 
     public function testUpdateValueNoPermissionData(){
-        $data = CustomTable::getEloquent('roletest_custom_value_edit')->getValueModel()
+        $data = CustomTable::getEloquent('custom_value_edit')->getValueModel()
             ->where('created_user_id', '<>', '3')->first();
 
         /// check not permission by user
@@ -758,7 +758,7 @@ class ApiTest extends ApiTestBase
 
         $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->put(admin_urls('api', 'data', 'roletest_custom_value_edit', $data->id), [
+        ])->put(admin_urls('api', 'data', 'custom_value_edit', $data->id), [
             'value' => [
                 'text' => 'test' . date('YmdHis') . '_update',
             ]
@@ -772,15 +772,15 @@ class ApiTest extends ApiTestBase
     public function testDeleteValue(){
         $token = $this->getAdminAccessToken([ApiScope::VALUE_WRITE]);
 
-        $data = CustomTable::getEloquent('roletest_custom_value_edit')->getValueModel()->find(80);
+        $data = CustomTable::getEloquent('custom_value_edit')->getValueModel()->find(80);
         $this->assertTrue(isset($data));
 
         $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->delete(admin_urls('api', 'data', 'roletest_custom_value_edit', 80))
+        ])->delete(admin_urls('api', 'data', 'custom_value_edit', 80))
             ->assertStatus(204);
 
-        $data = CustomTable::getEloquent('roletest_custom_value_edit')->getValueModel()->find(80);
+        $data = CustomTable::getEloquent('custom_value_edit')->getValueModel()->find(80);
         $this->assertTrue(!isset($data));
     }
 
@@ -791,7 +791,7 @@ class ApiTest extends ApiTestBase
 
         $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->delete(admin_urls('api', 'data', 'roletest_custom_value_edit', '99999'))
+        ])->delete(admin_urls('api', 'data', 'custom_value_edit', '99999'))
             ->assertStatus(400)
             ->assertJsonFragment([
                 'code' => ErrorCode::DATA_NOT_FOUND
@@ -799,7 +799,7 @@ class ApiTest extends ApiTestBase
     }
 
     public function testDeleteValueNoPermissionData(){
-        $data = CustomTable::getEloquent('roletest_custom_value_edit')->getValueModel()
+        $data = CustomTable::getEloquent('custom_value_edit')->getValueModel()
             ->where('created_user_id', '<>', '3')->first();
 
         /// check not permission by user
@@ -807,7 +807,7 @@ class ApiTest extends ApiTestBase
 
         $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->delete(admin_urls('api', 'data', 'roletest_custom_value_edit', $data->id))
+        ])->delete(admin_urls('api', 'data', 'custom_value_edit', $data->id))
             ->assertStatus(403)
             ->assertJsonFragment([
                 'code' => ErrorCode::PERMISSION_DENY
@@ -819,7 +819,7 @@ class ApiTest extends ApiTestBase
 
         $response = $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->get(admin_urls('api', 'data', 'roletest_custom_value_access_all', 'query').'?q=index_2')
+        ])->get(admin_urls('api', 'data', 'custom_value_access_all', 'query').'?q=index_2')
             ->assertStatus(200)
             ->assertJsonCount(10, 'data');
     }
@@ -829,7 +829,7 @@ class ApiTest extends ApiTestBase
 
         $response = $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->get(admin_urls('api', 'data', 'roletest_custom_value_access_all', 'query').'?q=index&page=3')
+        ])->get(admin_urls('api', 'data', 'custom_value_access_all', 'query').'?q=index&page=3')
             ->assertStatus(200)
             ->assertJsonCount(20, 'data');
     }
@@ -839,7 +839,7 @@ class ApiTest extends ApiTestBase
 
         $response = $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->get(admin_urls('api', 'data', 'roletest_custom_value_access_all', 'query').'?q=index_1&count=5')
+        ])->get(admin_urls('api', 'data', 'custom_value_access_all', 'query').'?q=index_1&count=5')
             ->assertStatus(200)
             ->assertJsonCount(5, 'data');
     }
@@ -849,7 +849,7 @@ class ApiTest extends ApiTestBase
 
         $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->get(admin_urls('api', 'data', 'roletest_custom_value_access_all', 'query'))
+        ])->get(admin_urls('api', 'data', 'custom_value_access_all', 'query'))
             ->assertStatus(400)
             ->assertJsonFragment([
                 'code' => ErrorCode::VALIDATION_ERROR
@@ -873,7 +873,7 @@ class ApiTest extends ApiTestBase
 
         $response = $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->get(admin_urls('api', 'data', 'roletest_custom_value_edit_all', 'query-column').'?q=index_text%20ne%20index_2_1,id%20gte%20100')
+        ])->get(admin_urls('api', 'data', 'custom_value_edit_all', 'query-column').'?q=index_text%20ne%20index_2_1,id%20gte%20100')
             ->assertStatus(200)
             ->assertJsonCount(2, 'data');
     }
@@ -883,7 +883,7 @@ class ApiTest extends ApiTestBase
 
         $response = $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->get(admin_urls('api', 'data', 'roletest_custom_value_edit_all', 'query-column').'?q=id%20lt%2050&page=2')
+        ])->get(admin_urls('api', 'data', 'custom_value_edit_all', 'query-column').'?q=id%20lt%2050&page=2')
             ->assertStatus(200)
             ->assertJsonCount(20, 'data');
     }
@@ -893,7 +893,7 @@ class ApiTest extends ApiTestBase
 
         $response = $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->get(admin_urls('api', 'data', 'roletest_custom_value_edit_all', 'query-column').'?q=created_user_id%20eq%202&count=4')
+        ])->get(admin_urls('api', 'data', 'custom_value_edit_all', 'query-column').'?q=created_user_id%20eq%202&count=4')
             ->assertStatus(200)
             ->assertJsonCount(4, 'data');
     }
@@ -903,7 +903,7 @@ class ApiTest extends ApiTestBase
 
         $response = $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->get(admin_urls('api', 'data', 'roletest_custom_value_access_all', 'query-column').'?q=index_text%20eq%20index_2_1,created_user_id%20ne%202')
+        ])->get(admin_urls('api', 'data', 'custom_value_access_all', 'query-column').'?q=index_text%20eq%20index_2_1,created_user_id%20ne%202')
             ->assertStatus(200)
             ->assertJsonCount(0, 'data');
     }
@@ -913,7 +913,7 @@ class ApiTest extends ApiTestBase
 
         $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->get(admin_urls('api', 'data', 'roletest_custom_value_access_all', 'query-column'))
+        ])->get(admin_urls('api', 'data', 'custom_value_access_all', 'query-column'))
             ->assertStatus(400)
             ->assertJsonFragment([
                 'code' => ErrorCode::VALIDATION_ERROR
@@ -925,7 +925,7 @@ class ApiTest extends ApiTestBase
 
         $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->get(admin_urls('api', 'data', 'roletest_custom_value_access_all', 'query-column').'?q=no_column%20eq%20123')
+        ])->get(admin_urls('api', 'data', 'custom_value_access_all', 'query-column').'?q=no_column%20eq%20123')
             ->assertStatus(400)
             ->assertJsonFragment([
                 'code' => ErrorCode::INVALID_PARAMS
@@ -937,7 +937,7 @@ class ApiTest extends ApiTestBase
 
         $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->get(admin_urls('api', 'data', 'roletest_custom_value_access_all', 'query-column').'?q=id%20in%20123')
+        ])->get(admin_urls('api', 'data', 'custom_value_access_all', 'query-column').'?q=id%20in%20123')
             ->assertStatus(400)
             ->assertJsonFragment([
                 'code' => ErrorCode::INVALID_PARAMS
@@ -949,7 +949,7 @@ class ApiTest extends ApiTestBase
 
         $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->get(admin_urls('api', 'data', 'roletest_custom_value_access_all', 'query-column').'?q=text%20eq%20123')
+        ])->get(admin_urls('api', 'data', 'custom_value_access_all', 'query-column').'?q=text%20eq%20123')
             ->assertStatus(400)
             ->assertJsonFragment([
                 'code' => ErrorCode::NOT_INDEX_ENABLED
@@ -1352,11 +1352,11 @@ class ApiTest extends ApiTestBase
 
         $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->get(admin_urls('api', 'wf', 'data', 'roletest_custom_value_access_all', '1000', 'value'))
+        ])->get(admin_urls('api', 'wf', 'data', 'custom_value_access_all', '1000', 'value'))
             ->assertStatus(200)
             ->assertJsonFragment([
                 'workflow_id' => '2',
-                'morph_type' => 'roletest_custom_value_access_all',
+                'morph_type' => 'custom_value_access_all',
                 'morph_id' => '1000',
                 'workflow_action_id'=> '5',
                 'workflow_status_from_id'=> '4',
@@ -1371,7 +1371,7 @@ class ApiTest extends ApiTestBase
 
         $response = $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->get(admin_urls('api', 'wf', 'data', 'roletest_custom_value_edit', '1000', 'value') . '?expands=status_from,status_to,action')
+        ])->get(admin_urls('api', 'wf', 'data', 'custom_value_edit', '1000', 'value') . '?expands=status_from,status_to,action')
             ->assertStatus(200);
             $response->assertJsonStructure([
                 'workflow_status_from',
@@ -1385,7 +1385,7 @@ class ApiTest extends ApiTestBase
 
         $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->get(admin_urls('api', 'wf', 'data', 'roletest_custom_value_access_all', '9999', 'value'))
+        ])->get(admin_urls('api', 'wf', 'data', 'custom_value_access_all', '9999', 'value'))
             ->assertStatus(400)
             ->assertJsonFragment([
                 'code' => ErrorCode::DATA_NOT_FOUND
@@ -1397,7 +1397,7 @@ class ApiTest extends ApiTestBase
 
         $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->get(admin_urls('api', 'wf', 'data', 'roletest_custom_value_edit_all', '10', 'value'))
+        ])->get(admin_urls('api', 'wf', 'data', 'custom_value_edit_all', '10', 'value'))
             ->assertStatus(400)
             ->assertJsonFragment([
                 'code' => ErrorCode::WORKFLOW_NOSTART
@@ -1421,7 +1421,7 @@ class ApiTest extends ApiTestBase
 
         $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->get(admin_urls('api', 'wf', 'data', 'roletest_custom_value_edit', '1000', 'value'))
+        ])->get(admin_urls('api', 'wf', 'data', 'custom_value_edit', '1000', 'value'))
             ->assertStatus(403)
             ->assertJsonFragment([
                 'code' => ErrorCode::PERMISSION_DENY
@@ -1433,7 +1433,7 @@ class ApiTest extends ApiTestBase
 
         $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->get(admin_urls('api', 'wf', 'data', 'roletest_custom_value_edit', '1', 'work_users'))
+        ])->get(admin_urls('api', 'wf', 'data', 'custom_value_edit', '1', 'work_users'))
             ->assertStatus(200)
             ->assertJsonFragment([
                 'organization_name' => 'dev'
@@ -1445,7 +1445,7 @@ class ApiTest extends ApiTestBase
 
         $response = $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->get(admin_urls('api', 'wf', 'data', 'roletest_custom_value_edit', '1', 'work_users'))
+        ])->get(admin_urls('api', 'wf', 'data', 'custom_value_edit', '1', 'work_users'))
             ->assertStatus(200)
             ->assertJsonCount(1)
             ->assertJsonFragment([
@@ -1458,7 +1458,7 @@ class ApiTest extends ApiTestBase
 
         $response = $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->get(admin_urls('api', 'wf', 'data', 'roletest_custom_value_edit', '1', 'work_users') . '?all=1')
+        ])->get(admin_urls('api', 'wf', 'data', 'custom_value_edit', '1', 'work_users') . '?all=1')
             ->assertStatus(200)
             ->assertJsonCount(2);
     }
@@ -1468,7 +1468,7 @@ class ApiTest extends ApiTestBase
 
         $response = $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->get(admin_urls('api', 'wf', 'data', 'roletest_custom_value_edit', '1', 'work_users') . '?as_user=1')
+        ])->get(admin_urls('api', 'wf', 'data', 'custom_value_edit', '1', 'work_users') . '?as_user=1')
             ->assertStatus(200)
             ->assertSeeText('dev-userB');
     }
@@ -1478,7 +1478,7 @@ class ApiTest extends ApiTestBase
 
         $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->get(admin_urls('api', 'wf', 'data', 'roletest_custom_value_access_all', '9999', 'work_users'))
+        ])->get(admin_urls('api', 'wf', 'data', 'custom_value_access_all', '9999', 'work_users'))
             ->assertStatus(400)
             ->assertJsonFragment([
                 'code' => ErrorCode::DATA_NOT_FOUND
@@ -1490,7 +1490,7 @@ class ApiTest extends ApiTestBase
 
         $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->get(admin_urls('api', 'wf', 'data', 'roletest_custom_value_access_all', '1000', 'work_users'))
+        ])->get(admin_urls('api', 'wf', 'data', 'custom_value_access_all', '1000', 'work_users'))
             ->assertStatus(400)
             ->assertJsonFragment([
                 'code' => ErrorCode::WORKFLOW_END
@@ -1514,7 +1514,7 @@ class ApiTest extends ApiTestBase
 
         $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->get(admin_urls('api', 'wf', 'data', 'roletest_custom_value_edit', '1000', 'work_users'))
+        ])->get(admin_urls('api', 'wf', 'data', 'custom_value_edit', '1000', 'work_users'))
             ->assertStatus(403)
             ->assertJsonFragment([
                 'code' => ErrorCode::PERMISSION_DENY
@@ -1526,7 +1526,7 @@ class ApiTest extends ApiTestBase
 
         $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->get(admin_urls('api', 'wf', 'data', 'roletest_custom_value_edit', '1', 'actions'))
+        ])->get(admin_urls('api', 'wf', 'data', 'custom_value_edit', '1', 'actions'))
             ->assertStatus(200)
             ->assertJsonCount(1)
             ->assertSeeText('action3');
@@ -1537,7 +1537,7 @@ class ApiTest extends ApiTestBase
 
         $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->get(admin_urls('api', 'wf', 'data', 'roletest_custom_value_edit', '1', 'actions') . '?all=1')
+        ])->get(admin_urls('api', 'wf', 'data', 'custom_value_edit', '1', 'actions') . '?all=1')
             ->assertStatus(200)
             ->assertJsonCount(2)
             ->assertSeeText('action2');
@@ -1548,7 +1548,7 @@ class ApiTest extends ApiTestBase
 
         $response = $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->get(admin_urls('api', 'wf', 'data', 'roletest_custom_value_view_all', '1', 'actions'))
+        ])->get(admin_urls('api', 'wf', 'data', 'custom_value_view_all', '1', 'actions'))
             ->assertStatus(200)
             ->assertJsonCount(0);
     }
@@ -1558,7 +1558,7 @@ class ApiTest extends ApiTestBase
 
         $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->get(admin_urls('api', 'wf', 'data', 'roletest_custom_value_edit', '99999', 'actions'))
+        ])->get(admin_urls('api', 'wf', 'data', 'custom_value_edit', '99999', 'actions'))
             ->assertStatus(400)
             ->assertJsonFragment([
                 'code' => ErrorCode::DATA_NOT_FOUND
@@ -1582,7 +1582,7 @@ class ApiTest extends ApiTestBase
 
         $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->get(admin_urls('api', 'wf', 'data', 'roletest_custom_value_edit', '1000', 'actions'))
+        ])->get(admin_urls('api', 'wf', 'data', 'custom_value_edit', '1000', 'actions'))
             ->assertStatus(400)
             ->assertJsonFragment([
                 'code' => ErrorCode::WORKFLOW_END
@@ -1606,7 +1606,7 @@ class ApiTest extends ApiTestBase
 
         $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->get(admin_urls('api', 'wf', 'data', 'roletest_custom_value_edit', '1000', 'actions'))
+        ])->get(admin_urls('api', 'wf', 'data', 'custom_value_edit', '1000', 'actions'))
             ->assertStatus(403)
             ->assertJsonFragment([
                 'code' => ErrorCode::PERMISSION_DENY
@@ -1618,7 +1618,7 @@ class ApiTest extends ApiTestBase
 
         $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->get(admin_urls('api', 'wf', 'data', 'roletest_custom_value_access_all', '1000', 'histories'))
+        ])->get(admin_urls('api', 'wf', 'data', 'custom_value_access_all', '1000', 'histories'))
             ->assertStatus(200)
             ->assertJsonCount(2);
     }
@@ -1628,7 +1628,7 @@ class ApiTest extends ApiTestBase
 
         $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->get(admin_urls('api', 'wf', 'data', 'roletest_custom_value_access_all', '10', 'histories'))
+        ])->get(admin_urls('api', 'wf', 'data', 'custom_value_access_all', '10', 'histories'))
             ->assertStatus(200)
             ->assertJsonCount(0);
     }
@@ -1638,7 +1638,7 @@ class ApiTest extends ApiTestBase
 
         $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->get(admin_urls('api', 'wf', 'data', 'roletest_custom_value_edit', '99999', 'histories'))
+        ])->get(admin_urls('api', 'wf', 'data', 'custom_value_edit', '99999', 'histories'))
             ->assertStatus(400)
             ->assertJsonFragment([
                 'code' => ErrorCode::DATA_NOT_FOUND
@@ -1674,7 +1674,7 @@ class ApiTest extends ApiTestBase
 
         $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->get(admin_urls('api', 'wf', 'data', 'roletest_custom_value_edit', '1000', 'histories'))
+        ])->get(admin_urls('api', 'wf', 'data', 'custom_value_edit', '1000', 'histories'))
             ->assertStatus(403)
             ->assertJsonFragment([
                 'code' => ErrorCode::PERMISSION_DENY
@@ -1690,7 +1690,7 @@ class ApiTest extends ApiTestBase
         $comment = 'comment' . date('YmdHis');
         $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->post(admin_urls('api', 'wf', 'data', 'roletest_custom_value_edit_all', '1000', 'value'), [
+        ])->post(admin_urls('api', 'wf', 'data', 'custom_value_edit_all', '1000', 'value'), [
             'workflow_action_id' => 2,
             'comment' => $comment
         ])
@@ -1706,7 +1706,7 @@ class ApiTest extends ApiTestBase
         $comment = 'comment' . date('YmdHis');
         $response = $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->post(admin_urls('api', 'wf', 'data', 'roletest_custom_value_edit_all', '1000', 'value'), [
+        ])->post(admin_urls('api', 'wf', 'data', 'custom_value_edit_all', '1000', 'value'), [
             'workflow_action_id' => 2,
             'next_users' => '4,3',
             'next_organizations' => 2,
@@ -1739,7 +1739,7 @@ class ApiTest extends ApiTestBase
 
         $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->post(admin_urls('api', 'wf', 'data', 'roletest_custom_value_edit', '1000', 'value'), [
+        ])->post(admin_urls('api', 'wf', 'data', 'custom_value_edit', '1000', 'value'), [
             'comment' => 'comment'
         ])
         ->assertStatus(400)
@@ -1753,7 +1753,7 @@ class ApiTest extends ApiTestBase
 
         $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->post(admin_urls('api', 'wf', 'data', 'roletest_custom_value_edit_all', '1000', 'value'), [
+        ])->post(admin_urls('api', 'wf', 'data', 'custom_value_edit_all', '1000', 'value'), [
             'workflow_action_id' => 3
         ])
         ->assertStatus(400)
@@ -1769,7 +1769,7 @@ class ApiTest extends ApiTestBase
 
         $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->post(admin_urls('api', 'wf', 'data', 'roletest_custom_value_edit_all', '1000', 'value'), [
+        ])->post(admin_urls('api', 'wf', 'data', 'custom_value_edit_all', '1000', 'value'), [
             'workflow_action_id' => 3,
             'comment' => $comment
         ])
@@ -1789,7 +1789,7 @@ class ApiTest extends ApiTestBase
 
         $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->post(admin_urls('api', 'wf', 'data', 'roletest_custom_value_edit_all', '1000', 'value'), [
+        ])->post(admin_urls('api', 'wf', 'data', 'custom_value_edit_all', '1000', 'value'), [
             'workflow_action_id' => 3,
             'comment' => $comment
         ])
@@ -1807,7 +1807,7 @@ class ApiTest extends ApiTestBase
 
         $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->post(admin_urls('api', 'wf', 'data', 'roletest_custom_value_edit', '1000', 'value'), [
+        ])->post(admin_urls('api', 'wf', 'data', 'custom_value_edit', '1000', 'value'), [
             'workflow_action_id' => 99999
         ])
         ->assertStatus(400)
@@ -1821,7 +1821,7 @@ class ApiTest extends ApiTestBase
 
         $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->post(admin_urls('api', 'wf', 'data', 'roletest_custom_value_edit', '1', 'value'), [
+        ])->post(admin_urls('api', 'wf', 'data', 'custom_value_edit', '1', 'value'), [
             'workflow_action_id' => 6
         ])
         ->assertStatus(400)
@@ -1835,7 +1835,7 @@ class ApiTest extends ApiTestBase
 
         $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->post(admin_urls('api', 'wf', 'data', 'roletest_custom_value_edit', '99999', 'value'), [
+        ])->post(admin_urls('api', 'wf', 'data', 'custom_value_edit', '99999', 'value'), [
             'workflow_action_id' => 3
         ])
             ->assertStatus(400)
@@ -1877,7 +1877,7 @@ class ApiTest extends ApiTestBase
 
         $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->post(admin_urls('api', 'wf', 'data', 'roletest_custom_value_edit', '1000', 'value'), [
+        ])->post(admin_urls('api', 'wf', 'data', 'custom_value_edit', '1000', 'value'), [
             'workflow_action_id' => 3
         ])
             ->assertStatus(403)
@@ -1891,7 +1891,7 @@ class ApiTest extends ApiTestBase
 
         $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->post(admin_urls('api', 'wf', 'data', 'roletest_custom_value_edit', '1000', 'value'), [
+        ])->post(admin_urls('api', 'wf', 'data', 'custom_value_edit', '1000', 'value'), [
             'workflow_action_id' => 3
         ])
             ->assertStatus(403)

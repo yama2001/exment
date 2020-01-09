@@ -7,7 +7,7 @@ class CustomViewTest extends UnitTestBase
 {
     public function testFuncGetMatchedCustomView1()
     {
-        $array = $this->getData('roletest_custom_value_edit_all', 'roletest_custom_value_edit_all view and');
+        $array = $this->getData('custom_value_edit_all', 'custom_value_edit_all-view-and');
         foreach ($array as $data) {
             $this->assertTrue($this->andWhere($data));
         }
@@ -15,7 +15,7 @@ class CustomViewTest extends UnitTestBase
     
     public function testFuncGetMatchedCustomView2()
     {
-        $array = $this->getData('roletest_custom_value_edit_all', 'roletest_custom_value_edit_all view or');
+        $array = $this->getData('custom_value_edit_all', 'custom_value_edit_all-view-or');
         foreach ($array as $data) {
             $this->assertTrue($this->orWhere($data));
         }
