@@ -330,7 +330,7 @@ class TestDataSeeder extends Seeder
      */
     protected function createView($custom_table, $custom_columns)
     {
-        // create view
+        ///// create AllData view
         $custom_view = new CustomView;
         $custom_view->custom_table_id = $custom_table->id;
         $custom_view->view_view_name = $custom_table->table_name . '-view-all';
@@ -339,24 +339,10 @@ class TestDataSeeder extends Seeder
         $custom_view->save();
         $order = 1;
         
-        $custom_view_column = new CustomViewColumn;
-        $custom_view_column->custom_view_id = $custom_view->id;
-        $custom_view_column->view_column_type = ConditionType::SYSTEM;
-        $custom_view_column->view_column_table_id = $custom_table->id;
-        $custom_view_column->view_column_target_id = 1; // SystemColumn::id
-        $custom_view_column->order = $order;
-        $custom_view_column->save();
-        $order++;
+        $this->createSystemViewColumn($custom_view->id, $custom_table->id, $order++);
 
         foreach ($custom_columns as $custom_column) {
-            $custom_view_column = new CustomViewColumn;
-            $custom_view_column->custom_view_id = $custom_view->id;
-            $custom_view_column->view_column_type = ConditionType::COLUMN;
-            $custom_view_column->view_column_table_id = $custom_table->id;
-            $custom_view_column->view_column_target_id = $custom_column->id;
-            $custom_view_column->order = $order;
-            $custom_view_column->save();
-            $order++;
+            $this->createViewColumn($custom_view->id, $custom_table->id, $custom_column->id, $order++);
         }
     
         // create andor
@@ -371,57 +357,77 @@ class TestDataSeeder extends Seeder
             $custom_view->save();
             $order = 1;
 
-            $custom_view_column = new CustomViewColumn;
-            $custom_view_column->custom_view_id = $custom_view->id;
-            $custom_view_column->view_column_type = ConditionType::SYSTEM;
-            $custom_view_column->view_column_table_id = $custom_table->id;
-            $custom_view_column->view_column_target_id = 1; // SystemColumn::id
-            $custom_view_column->order = $order;
-            $custom_view_column->save();
-            $order++;
+            $this->createSystemViewColumn($custom_view->id, $custom_table->id, $order++);
 
             foreach ($custom_columns as $custom_column) {
-                $custom_view_column = new CustomViewColumn;
-                $custom_view_column->custom_view_id = $custom_view->id;
-                $custom_view_column->view_column_type = ConditionType::COLUMN;
-                $custom_view_column->view_column_table_id = $custom_table->id;
-                $custom_view_column->view_column_target_id = $custom_column->id;
-                $custom_view_column->order = $order;
-                $custom_view_column->save();
-                $order++;
+                $this->createViewColumn($custom_view->id, $custom_table->id, $custom_column->id, $order++);
 
                 if ($custom_column->column_type == ColumnType::TEXT) {
                     if ($custom_column->column_view_name == 'odd_even') {
-                        $custom_view_filter = new CustomViewFilter;
-                        $custom_view_filter->custom_view_id = $custom_view->id;
-                        $custom_view_filter->view_column_type = ConditionType::COLUMN;
-                        $custom_view_filter->view_column_table_id = $custom_table->id;
-                        $custom_view_filter->view_column_target_id = $custom_column->id;
-                        $custom_view_filter->view_filter_condition = FilterOption::NE;
-                        $custom_view_filter->view_filter_condition_value_text = 'odd';
-                        $custom_view_filter->save();
+                        $this->createCustomViewFilter(
+                            $custom_view->id,
+                            ConditionType::COLUMN,
+                            $custom_table->id,
+                            $custom_column->id,
+                            FilterOption::NE,
+                            'odd'
+                        );
                     }
                 } elseif ($custom_column->column_type == ColumnType::YESNO)  {
-                    $custom_view_filter = new CustomViewFilter;
-                    $custom_view_filter->custom_view_id = $custom_view->id;
-                    $custom_view_filter->view_column_type = ConditionType::COLUMN;
-                    $custom_view_filter->view_column_table_id = $custom_table->id;
-                    $custom_view_filter->view_column_target_id = $custom_column->id;
-                    $custom_view_filter->view_filter_condition = FilterOption::EQ;
-                    $custom_view_filter->view_filter_condition_value_text = 1;
-                    $custom_view_filter->save();
+                    $this->createCustomViewFilter(
+                        $custom_view->id,
+                        ConditionType::COLUMN,
+                        $custom_table->id,
+                        $custom_column->id,
+                        FilterOption::EQ,
+                        1
+                    );
                 } elseif ($custom_column->column_type == ColumnType::USER)  {
-                    $custom_view_filter = new CustomViewFilter;
-                    $custom_view_filter->custom_view_id = $custom_view->id;
-                    $custom_view_filter->view_column_type = ConditionType::COLUMN;
-                    $custom_view_filter->view_column_table_id = $custom_table->id;
-                    $custom_view_filter->view_column_target_id = $custom_column->id;
-                    $custom_view_filter->view_filter_condition = FilterOption::USER_EQ;
-                    $custom_view_filter->view_filter_condition_value_text = 2;
-                    $custom_view_filter->save();
+                    $this->createCustomViewFilter(
+                        $custom_view->id,
+                        ConditionType::COLUMN,
+                        $custom_table->id,
+                        $custom_column->id,
+                        FilterOption::USER_EQ,
+                        2
+                    );
                 }
             }
         }
+
+        // workflow view
+
+    }
+
+    protected function createCustomViewFilter($custom_view_id, $view_column_type, $view_column_table_id, $view_column_target_id, $view_filter_condition, $view_filter_condition_value_text){
+        $custom_view_filter = new CustomViewFilter;
+        $custom_view_filter->custom_view_id = $custom_view_id;
+        $custom_view_filter->view_column_type = $view_column_type;
+        $custom_view_filter->view_column_table_id = $view_column_table_id;
+        $custom_view_filter->view_column_target_id = $view_column_target_id;
+        $custom_view_filter->view_filter_condition = $view_filter_condition;
+        $custom_view_filter->view_filter_condition_value_text = $view_filter_condition_value_text;
+        $custom_view_filter->save();
+    }
+    
+    protected function createSystemViewColumn($custom_view_id, $view_column_table_id, $order){
+        $custom_view_column = new CustomViewColumn;
+        $custom_view_column->custom_view_id = $custom_view_id;
+        $custom_view_column->view_column_type = ConditionType::SYSTEM;
+        $custom_view_column->view_column_table_id = $view_column_table_id;
+        $custom_view_column->view_column_target_id = 1;
+        $custom_view_column->order = $order;
+        $custom_view_column->save();
+    }
+    
+    protected function createViewColumn($custom_view_id, $view_column_table_id, $view_column_target_id, $order){
+        $custom_view_column = new CustomViewColumn;
+        $custom_view_column->custom_view_id = $custom_view_id;
+        $custom_view_column->view_column_type = ConditionType::COLUMN;
+        $custom_view_column->view_column_table_id = $view_column_table_id;
+        $custom_view_column->view_column_target_id = $view_column_target_id;
+        $custom_view_column->order = $order;
+        $custom_view_column->save();
     }
     
     /**
