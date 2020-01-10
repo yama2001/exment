@@ -330,7 +330,7 @@ class ApiTest extends ApiTestBase
 
         $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->get(admin_urls('api', 'column', 99))
+        ])->get(admin_urls('api', 'column', 9999))
             ->assertStatus(400)
             ->assertJsonFragment([
                 'code' => ErrorCode::DATA_NOT_FOUND
@@ -975,7 +975,7 @@ class ApiTest extends ApiTestBase
             'Authorization' => "Bearer $token",
         ])->get(admin_urls('api', 'notify'))
             ->assertStatus(200)
-            ->assertJsonCount(6, 'data');
+            ->assertJsonCount(10, 'data');
     }
 
     public function testGetNotifyAll(){
@@ -985,7 +985,7 @@ class ApiTest extends ApiTestBase
             'Authorization' => "Bearer $token",
         ])->get(admin_urls('api', 'notify').'?all=1')
             ->assertStatus(200)
-            ->assertJsonCount(12, 'data');
+            ->assertJsonCount(20, 'data');
     }
 
     public function testGetNotifyWithCount(){
