@@ -375,60 +375,56 @@ class InitTestCommand extends Command
             $tables[$permission] = $custom_table;
         }
 
+        // create table for workflow
+        foreach (range(1, 4) as $i) {
+            $custom_table = $this->createTable("workflow$i", $users, $menu->id, [
+                'all_user_editable_flg' => 1
+            ]);
+        }
+
         // NO permission
         $this->createTable('no_permission', $users, $menu->id);
 
         return $tables;
     }
 
-    protected function createTable($keyName, $users, $menuParentId)
+    /**
+     * Create table
+     *
+     * @param [type] $keyName
+     * @param [type] $users
+     * @param [type] $menuParentId
+     * @param array $customTableOptions
+     * @return void
+     */
+    protected function createTable($keyName, $users, $menuParentId, $customTableOptions = [])
     {
         // create table
         $custom_table = new CustomTable;
         $custom_table->table_name = $keyName;
         $custom_table->table_view_name = $keyName;
-
+        $custom_table->options =  $customTableOptions;
         $custom_table->save();
 
-        $custom_column = new CustomColumn;
-        $custom_column->custom_table_id = $custom_table->id;
-        $custom_column->column_name = 'text';
-        $custom_column->column_view_name = 'text';
-        $custom_column->column_type = ColumnType::TEXT;
-        $custom_column->options = ['required' => '1'];
-        $custom_column->save();
+        $columns = [
+            ['column_name' => 'text', 'column_view_name' => 'text', 'column_type' => ColumnType::TEXT, 'options' => ['required' => '1']],
+            ['column_name' => 'user', 'column_view_name' => 'user', 'column_type' => ColumnType::USER, 'options' => ['index_enabled' => '1']],
+            ['column_name' => 'index_text', 'column_view_name' => 'index_text', 'column_type' => ColumnType::TEXT, 'options' => ['index_enabled' => '1']],
+            ['column_name' => 'multiples_of_3', 'column_view_name' => 'multiples_of_3', 'column_type' => ColumnType::YESNO, 'options' => ['index_enabled' => '1']],
+        ];
 
-        $custom_column2 = new CustomColumn;
-        $custom_column2->custom_table_id = $custom_table->id;
-        $custom_column2->column_name = 'user';
-        $custom_column2->column_view_name = 'ユーザー';
-        $custom_column2->column_type = ColumnType::USER;
-        $custom_column2->options = ['index_enabled' => '1'];
-        $custom_column2->save();
-
-        $custom_column3 = new CustomColumn;
-        $custom_column3->custom_table_id = $custom_table->id;
-        $custom_column3->column_name = 'index_text';
-        $custom_column3->column_view_name = 'index_text';
-        $custom_column3->column_type = ColumnType::TEXT;
-        $custom_column3->options = ['index_enabled' => '1'];
-        $custom_column3->save();
-
-        $custom_column4 = new CustomColumn;
-        $custom_column4->custom_table_id = $custom_table->id;
-        $custom_column4->column_name = 'odd_even';
-        $custom_column4->column_view_name = 'odd_even';
-        $custom_column4->column_type = ColumnType::TEXT;
-        $custom_column4->options = ['index_enabled' => '1'];
-        $custom_column4->save();
-
-        $custom_column5 = new CustomColumn;
-        $custom_column5->custom_table_id = $custom_table->id;
-        $custom_column5->column_name = 'multiples_of_3';
-        $custom_column5->column_view_name = 'multiples_of_3';
-        $custom_column5->column_type = ColumnType::YESNO;
-        $custom_column5->options = ['index_enabled' => '1'];
-        $custom_column5->save();
+        $custom_columns = [];
+        foreach($columns as $column){
+            $custom_column = new CustomColumn;
+            $custom_column->custom_table_id = $custom_table->id;
+            $custom_column->column_name = $column['column_name'];
+            $custom_column->column_view_name = $column['column_view_name'];
+            $custom_column->column_type = $column['column_type'];
+            $custom_column->options = $column['options'];
+            $custom_column->save();
+    
+            $custom_columns[] = $custom_column;
+        }
 
         $custom_form_conditions = [
             [
@@ -466,7 +462,7 @@ class InitTestCommand extends Command
             $custom_form_condition->save();
         }
 
-        $this->createView($custom_table, $custom_column, $custom_column2, $custom_column3, $custom_column4, $custom_column5);
+        $this->createView($custom_table, $custom_columns);
         
         $notify_id = $this->createNotify($custom_table);
 
@@ -551,7 +547,7 @@ class InitTestCommand extends Command
      *
      * @return void
      */
-    protected function createView($custom_table, ...$custom_columns)
+    protected function createView($custom_table, $custom_columns)
     {
         // create view
         $custom_view = new CustomView;

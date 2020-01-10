@@ -89,7 +89,7 @@ php artisan exment:inittest
 | table_name + ' view or' | default | odd_even != odd or multiples_of_3 == 1 or user == 2 |
 | table_name + ' view workflow_status_start' | default | Workflow status is "start" |
 | table_name + ' view workflow_status_middle' | default | Workflow status is "middle" |
-| table_name + ' view workflow_work_user' | default | Workflow is self |
+| table_name + ' view workflow_work_user' | default | Login user is work user for workflow |
 
 
 ### CustomValue
