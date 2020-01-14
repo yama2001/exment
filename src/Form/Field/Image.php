@@ -8,6 +8,13 @@ class Image extends \Encore\Admin\Form\Field\Image
 {
 
     /**
+     *  Validation rules.
+     *
+     * @var string
+     */
+    protected $rules = [];
+
+    /**
      * If name already exists, rename it.
      * *override
      *

@@ -7,6 +7,7 @@ use Encore\Admin\Form\Field;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Validator;
 
 class File extends CustomItem
 {
@@ -124,5 +125,10 @@ class File extends CustomItem
         }
 
         return $this->value;
+    }
+    
+    protected function setValidates(&$validates)
+    {
+        $validates[] = new Validator\FileRule();
     }
 }
