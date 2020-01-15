@@ -24,7 +24,7 @@ class ImageRule extends FileRule
             return true;
         }
 
-        if (is_string($value)) {
+        if (is_string($value) || $value instanceof \Illuminate\Http\UploadedFile) {
             return $this->validateImage($attribute, $value);
         }
 
