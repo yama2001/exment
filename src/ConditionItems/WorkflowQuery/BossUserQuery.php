@@ -70,7 +70,7 @@ class BossUserQuery extends WorkflowQueryBase
                             ->whereNull(SystemTableName::WORKFLOW_VALUE . '.workflow_status_to_id')
                         ;
                     })->orWhere(function ($query) {
-                        $query->where(SystemTableName::WORKFLOW_ACTION . '.status_from', \DB::raw(SystemTableName::WORKFLOW_VALUE . '.workflow_status_to_id'))
+                        $query->whereColumn(SystemTableName::WORKFLOW_ACTION . '.status_from', SystemTableName::WORKFLOW_VALUE . '.workflow_status_to_id')
                         ;
                     });
                 });
@@ -83,7 +83,7 @@ class BossUserQuery extends WorkflowQueryBase
             })
             ->joinSub($subsubquery, 'called_workflow_values', function ($join) use ($tableName) {
                 $join->on(SystemTableName::WORKFLOW_VALUE . '.morph_id', 'called_workflow_values.morph_id')
-                    ->where(SystemTableName::WORKFLOW_VALUE . '.morph_type', \DB::raw('called_workflow_values.morph_type'));
+                    ->whereColumn(SystemTableName::WORKFLOW_VALUE . '.morph_type', 'called_workflow_values.morph_type');
             })
             ->join(SystemTableName::WORKFLOW_AUTHORITY, function ($join) {
                 $join->on(SystemTableName::WORKFLOW_AUTHORITY . '.workflow_action_id', SystemTableName::WORKFLOW_ACTION . ".id")

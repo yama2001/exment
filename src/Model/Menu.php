@@ -95,45 +95,31 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
         $grammar = DB::getQueryGrammar();
         $orderColumn = $grammar->wrap($this->orderColumn);
 
-        // get column
-        // if SqlServer, needs cast
-        if ($grammar instanceof \Illuminate\Database\Query\Grammars\SqlServerGrammar) {
-            $tableQuery = $grammar->getCastColumn(DatabaseDataType::TYPE_STRING, 'c.id');
-            $pluginQuery = $grammar->getCastColumn(DatabaseDataType::TYPE_STRING, 'p.id');
-        } else {
-            $tableQuery = $grammar->wrap('c.id');
-            $pluginQuery = $grammar->wrap('p.id');
-        }
-
         // get all menu, custom table, plugin table.
         $query = DB::table("{$this->getTable()} as m")
             // join table
-            ->leftJoin(CustomTable::getTableName()." as c", function ($join) use ($tableQuery) {
+            ->leftJoin(CustomTable::getTableName()." as c", function ($join) {
+                $join->on("m.menu_target", 'c.id');
                 $join->where("m.menu_type", MenuType::TABLE);
-                $join->whereRaw("m.menu_target = ". $tableQuery);
             })
             // join plugin
-            ->leftJoin(Plugin::getTableName()." as p", function ($join) use ($pluginQuery) {
+            ->leftJoin(Plugin::getTableName()." as p", function ($join) {
+                $join->on("m.menu_target", 'p.id');
                 $join->where("m.menu_type", MenuType::PLUGIN);
-                $join->whereRaw("m.menu_target = ". $pluginQuery);
             })
+            // orberby. $orderColumn is wraped
             ->orderByRaw("CASE WHEN m.$orderColumn = 0 THEN 1 ELSE 0 END")
             ->orderByRaw("m.$orderColumn");
-
-        //->map(function ($item, $key) {
-        //    return (array) $item;
-        //})
-        //->all();
         ;
         $rows = $query->get(['m.*',
-                'c.id AS custom_table_id',
-                'c.table_name',
-                'c.table_view_name',
-                'c.options AS table_options',
-                'p.id AS plugin_id',
-                'p.plugin_name'])->map(function ($item, $key) {
-                    return (array) $item;
-                })
+            'c.id AS custom_table_id',
+            'c.table_name',
+            'c.table_view_name',
+            'c.options AS table_options',
+            'p.id AS plugin_id',
+            'p.plugin_name'])->map(function ($item, $key) {
+                return (array) $item;
+            })
         ->all();
 
         $results = [];

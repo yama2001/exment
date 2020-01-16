@@ -54,7 +54,7 @@ class NotHasWorkflowValueQuery extends WorkflowQueryBase
                 $escapeTableName = \esc_sqlTable($tableName);
                 $query->select(\DB::raw(1))
                         ->from(SystemTableName::WORKFLOW_VALUE)
-                        ->whereRaw(SystemTableName::WORKFLOW_VALUE . '.morph_id = ' . $escapeTableName .'.id')
+                        ->whereColumn(SystemTableName::WORKFLOW_VALUE . '.morph_id', $escapeTableName .'.id')
                         ->where(SystemTableName::WORKFLOW_VALUE . '.morph_type', $custom_table->table_name)
                         ->where(SystemTableName::WORKFLOW_VALUE . '.latest_flg', 1)
                         ;
