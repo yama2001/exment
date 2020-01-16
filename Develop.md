@@ -150,8 +150,6 @@ Set "Target Dir" setting "packages/exceedone/exment/public/vendor/exment/css".
 php artisan exment:publish
 ~~~
 
-
-
 ## GitHub
 
 ### Brunch
