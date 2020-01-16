@@ -102,7 +102,7 @@ trait ItemTrait
     public function getSortColumn()
     {
         $cast = $this->getCastName();
-        $index = $this->index();
+        $index = \DB::getQueryGrammar()->wrap($this->index());
         
         if (!isset($cast)) {
             return $index;

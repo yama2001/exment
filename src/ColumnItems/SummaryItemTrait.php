@@ -20,12 +20,16 @@ trait SummaryItemTrait
         $summary_option = array_get($this->options, 'summary_condition');
         $summary_condition = is_null($summary_option) ? null : SummaryCondition::getEnum($summary_option)->lowerKey();
         
+        $grammer = \DB::getQueryGrammar();
         if (isset($summary_condition)) {
-            $raw = "$summary_condition($value_column) AS ".$this->sqlAsName();
+            // wrap
+            $raw = $grammer->wrap("$summary_condition($value_column) AS ".$this->sqlAsName());
         } elseif (isset($group_condition)) {
-            $raw = \DB::getQueryGrammar()->getDateFormatString($group_condition, $value_column, false) . " AS ".$this->sqlAsName();
+            // wraped
+            $raw = $grammer->getDateFormatString($group_condition, $value_column, false) . " AS ".$this->sqlAsName();
         } else {
-            $raw = "$value_column AS ".$this->sqlAsName();
+            // wrap
+            $raw = $grammer->wrap("$value_column AS ".$this->sqlAsName());
         }
 
         return \DB::raw($raw);
@@ -37,7 +41,8 @@ trait SummaryItemTrait
     protected function getGroupBySqlName()
     {
         extract($this->getSummaryParams());
-        
+        $grammer = \DB::getQueryGrammar();
+
         // get column_name. toggle whether is child or not
         if ($is_child) {
             $column_name = $this->sqlAsName();
@@ -46,9 +51,11 @@ trait SummaryItemTrait
         }
 
         if (isset($group_condition)) {
+            // wraped
             $raw = \DB::getQueryGrammar()->getDateFormatString($group_condition, $column_name, true);
         } else {
-            $raw = $column_name;
+            // wrap
+            $raw = $grammer->wrap($column_name);
         }
 
         return \DB::raw($raw);
@@ -87,10 +94,13 @@ trait SummaryItemTrait
     {
         $db_table_name = getDBTableName($this->custom_column->custom_table);
         $column_name = $this->custom_column->column_name;
+        $grammer = \DB::getQueryGrammar();
 
         $summary_condition = SummaryCondition::getSummaryCondition(array_get($this->options, 'summary_condition'));
         $alter_name = $this->sqlAsName();
-        $raw = "$summary_condition($alter_name) AS $alter_name";
+        
+        // wrap
+        $raw = $grammer->wrap("$summary_condition($alter_name) AS $alter_name");
 
         return \DB::raw($raw);
     }

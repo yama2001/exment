@@ -62,7 +62,7 @@ class WorkflowValueQuery extends WorkflowQueryBase
                             ->whereNull(SystemTableName::WORKFLOW_VALUE . '.workflow_status_to_id')
                         ;
                     })->orWhere(function ($query) {
-                        $query->where(SystemTableName::WORKFLOW_ACTION . '.status_from', \DB::raw(SystemTableName::WORKFLOW_VALUE . '.workflow_status_to_id'))
+                        $query->whereColumn(SystemTableName::WORKFLOW_ACTION . '.status_from', SystemTableName::WORKFLOW_VALUE . '.workflow_status_to_id')
                         ;
                     });
                 });

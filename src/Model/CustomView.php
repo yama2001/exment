@@ -538,10 +538,11 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
                 if (!isset($custom_column)) {
                     break;
                 }
-                $column_item = $custom_column->custom_column;
+                $column_item = $custom_column->column_item;
                 if (!isset($column_item)) {
                     break;
                 }
+                // $view_column_target is wraped
                 $view_column_target = $column_item->getSortColumn();
                 $sort_order = $custom_view_sort->sort == ViewColumnSort::ASC ? 'asc' : 'desc';
                 //set order
@@ -699,10 +700,10 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
 
         // join subquery
         foreach ($sub_queries as $table_no => $sub_query) {
-            //$query = $query->leftjoin(\DB::raw('('.$sub_query->toSql().") As table_$table_no"), $db_table_name.'.id', "table_$table_no.id");
             $alter_name = is_string($table_no)? $table_no : 'table_'.$table_no;
-            $query->leftjoin(\DB::raw('('.$sub_query->toSql().") As $alter_name"), $db_table_name.'.id', "$alter_name.id");
-            $query = $query->mergeBindings($sub_query);
+            $query->leftjoinSub($sub_query, $alter_name, function($join) use($db_table_name, $alter_name){
+                $join->on($db_table_name.'.id', "$alter_name.id");
+            });
         }
 
         if (count($sort_columns) > 0) {
