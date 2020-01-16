@@ -48,14 +48,22 @@ class AddOptionsToFilters extends Migration
     public function down()
     {
         Schema::table('workflow_condition_headers', function($table) {
-            $table->dropColumn('options');
+            if (Schema::hasColumn('workflow_condition_headers', 'options')) {
+                $table->dropColumn('options');
+            }
         });
         Schema::table('custom_form_priorities', function($table) {
-            $table->dropColumn('options');
+            if (Schema::hasColumn('custom_form_priorities', 'options')) {
+                $table->dropColumn('options');
+            }
         });
         Schema::table('revisions', function($table) {
-            $table->dropColumn('deleted_at');
-            $table->dropColumn('delete_user_id');
+            if (Schema::hasColumn('revisions', 'deleted_at')) {
+                $table->dropColumn('deleted_at');
+            }
+            if (Schema::hasColumn('revisions', 'delete_user_id')) {
+                $table->dropColumn('delete_user_id');
+            }
         });
     }
 }
