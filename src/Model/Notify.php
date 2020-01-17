@@ -397,7 +397,7 @@ class Notify extends ModelBase
         $column = CustomColumn::getEloquent(array_get($this, 'trigger_settings.notify_target_column'));
 
         //ymd row
-        $raw = \DB::getQueryGrammar()->getDateFormatString(GroupCondition::YMD, 'value->'.$column->column_name, false, false);
+        $raw = \DB::getQueryGrammar()->getDateFormatString(GroupCondition::YMD, 'value->'.$column->column_name, false);
 
         // find data. where equal target_date
         if (isset($this->custom_view_id)) {

@@ -1227,7 +1227,7 @@ abstract class CustomValue extends ModelBase
     public function lockedWorkflow()
     {
         // check workflow
-        if (is_null($this->workflow_status)) {
+        if ($this->workflow_value === null || $this->workflow_status === null) {
             return false;
         }
 

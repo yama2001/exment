@@ -69,7 +69,9 @@ class SystemItem implements ItemInterface
         if (boolval(array_get($this->options, 'summary'))) {
             $summary_condition = SummaryCondition::getSummaryCondition(array_get($this->options, 'summary_condition'));
             $alter_name = $this->sqlAsName();
-            $raw = "$summary_condition($alter_name) AS $alter_name";
+            
+            // wrap
+            $raw = \DB::getQueryGrammar()->wrap("$summary_condition($alter_name) AS $alter_name");
             return \DB::raw($raw);
         }
         return null;
@@ -85,13 +87,17 @@ class SystemItem implements ItemInterface
         $summary_option = array_get($this->options, 'summary_condition');
         $summary_condition = is_null($summary_option)? null: SummaryCondition::getEnum($summary_option)->lowerKey();
         $group_condition = array_get($this->options, 'group_condition');
+        $grammer = \DB::getQueryGrammar();
 
         if (isset($summary_condition)) {
-            $raw = "$summary_condition($column_name) AS ".$this->sqlAsName();
+            // wrap
+            $raw = $grammer->wrap("$summary_condition($column_name) AS ".$this->sqlAsName());
         } elseif (isset($group_condition)) {
-            $raw = \DB::getQueryGrammar()->getDateFormatString($group_condition, $column_name, false) . " AS ".$this->sqlAsName();
+            // wrap
+            $raw = $grammer->getDateFormatString($group_condition, $column_name, false) . " AS ".$this->sqlAsName();
         } else {
-            $raw = "$column_name AS ".$this->sqlAsName();
+            // wrap
+            $raw = $grammer->wrap("$column_name AS ".$this->sqlAsName());
         }
 
         return \DB::raw($raw);
