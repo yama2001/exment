@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\ConditionItems;
 
+use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\Condition;
