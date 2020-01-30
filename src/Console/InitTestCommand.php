@@ -306,8 +306,13 @@ class InitTestCommand extends Command
         $relationName = CustomRelation::getRelationNamebyTables('organization', 'user');
 
         foreach ($values as $type => $typevalue) {
+            $custom_table = CustomTable::getEloquent($type);
+            if(!isset($custom_table)){
+                continue;
+            }
+            
             foreach ($typevalue as $user_key => &$user) {
-                $model = CustomTable::getEloquent($type)->getValueModel();
+                $model = $custom_table->getValueModel();
                 foreach ($user['value'] as $key => $value) {
                     $model->setValue($key, $value);
                 }
