@@ -140,7 +140,7 @@ class TestDataSeeder extends Seeder
     protected function createRelationTables($users)
     {
         // 1:n table
-        $parent_table = $this->createTable('parent_table', $users, 1);
+        $parent_table = $this->createTable('parent_table', $users, 1, [], 1);
         $this->createPermission([Permission::CUSTOM_VALUE_EDIT_ALL => $parent_table]);
 
         $child_table = $this->createTable('child_table', [], 1);

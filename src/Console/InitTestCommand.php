@@ -47,11 +47,11 @@ class InitTestCommand extends Command
             return;
         }
 
-        \Artisan::call('migrate:reset');
+        $this->call('migrate:reset');
 
         System::clearCache();
-
-        \Artisan::call('exment:install');
+        
+        $this->call('exment:install');
 
         System::clearCache();
         
