@@ -77,12 +77,12 @@ class MySqlGrammar extends BaseGrammar
      *
      * @return void
      */
-    public function getDateFormatString($groupCondition, $column, $groupBy = false, $wrap = true)
+    public function getDateFormatString($groupCondition, $column, $groupBy = false)
     {
-        if ($wrap) {
-            $column = $this->wrap($column);
-        } elseif ($this->isJsonSelector($column)) {
+        if ($this->isJsonSelector($column)) {
             $column = $this->wrapJsonUnquote($column);
+        }else{
+            $column = $this->wrap($column);
         }
 
         switch ($groupCondition) {

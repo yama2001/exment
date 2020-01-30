@@ -34,7 +34,7 @@ class File extends ModelBase
             return null;
         }
 
-        return pathinfo($this->local_filename)['extension'];
+        return pathinfo($this->local_filename, PATHINFO_EXTENSION);
     }
 
     /**
@@ -84,7 +84,7 @@ class File extends ModelBase
             return null;
         }
 
-        if (isset($file->extension)) {
+        if (!is_nullorempty($file->extension)) {
             $name = "files/".$file->uuid . '.' . $file->extension;
         } else {
             $name = "files/".$file->uuid;

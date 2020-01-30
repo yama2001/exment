@@ -90,6 +90,8 @@ class InitTestCommand extends Command
 
         $this->createWorkflow($users);
 
+        $this->createRelationTables($users);
+
         // init api
         $clientRepository = new ClientRepository;
         $client = $clientRepository->createPasswordGrantClient(
@@ -114,6 +116,11 @@ class InitTestCommand extends Command
 
     protected function createUserOrg()
     {
+        \Illuminate\Database\Eloquent\Relations\Relation::morphMap([
+            'user' => ltrim(getModelName('user', true), "\\"),
+            'organization' => ltrim(getModelName('organization', true), "\\"),
+        ]);
+
         // set users
         $values = [
             'user' => [
@@ -337,6 +344,22 @@ class InitTestCommand extends Command
         return $values['user'];
     }
 
+    protected function createRelationTables($users)
+    {
+        // 1:n table
+        $parent_table = $this->createTable('parent_table', $users, 1);
+        $this->createPermission([Permission::CUSTOM_VALUE_EDIT_ALL => $parent_table]);
+
+        $child_table = $this->createTable('child_table', []);
+        $this->createPermission([Permission::CUSTOM_VALUE_EDIT_ALL => $child_table]);
+
+        $relation = new CustomRelation;
+        $relation->parent_custom_table_id = $parent_table->id;
+        $relation->child_custom_table_id = $child_table->id;
+        $relation->relation_type = 1;
+        $relation->save();
+    }
+
     protected function createTables($users)
     {
         // create test table
@@ -360,7 +383,7 @@ class InitTestCommand extends Command
         return $tables;
     }
 
-    protected function createTable($keyName, $users)
+    protected function createTable($keyName, $users, $count = 10)
     {
         // create table
         $custom_table = new CustomTable;
@@ -368,6 +391,9 @@ class InitTestCommand extends Command
         $custom_table->table_view_name = $keyName;
 
         $custom_table->save();
+        \Illuminate\Database\Eloquent\Relations\Relation::morphMap([
+            $keyName => ltrim(getModelName($custom_table, true), "\\")
+        ]);
 
         $custom_column = new CustomColumn;
         $custom_column->custom_table_id = $custom_table->id;
@@ -456,7 +482,7 @@ class InitTestCommand extends Command
 
             $id = array_get($user, 'id');
 
-            for ($i = 1; $i <= 10; $i++) {
+            for ($i = 1; $i <= $count; $i++) {
                 $custom_value = $custom_table->getValueModel();
                 $custom_value->setValue("text", 'test_'.$id);
                 $custom_value->setValue("user", $id);

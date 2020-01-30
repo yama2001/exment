@@ -120,7 +120,7 @@ class DefaultTableProvider extends ProviderBase
         foreach ($dataObjects as $line_no => $value) {
             $check = $this->validateDataRow($line_no, $value, $validate_columns);
             if ($check === true) {
-                array_push($success_data, $value);
+                $success_data[] = $value;
             } else {
                 $error_data = array_merge($error_data, $check);
             }
@@ -160,7 +160,7 @@ class DefaultTableProvider extends ProviderBase
         }
 
         // execute validation
-        $validator = $this->custom_table->validateValue(array_dot_reverse($data), true, array_get($model, 'id'), 'value.');
+        $validator = $this->custom_table->validateValue(array_dot_reverse($data), true, array_get($model, 'id'), 'value.', true, false);
         if ($validator->fails()) {
             // create error message
             foreach ($validator->errors()->messages() as $message) {

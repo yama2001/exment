@@ -34,6 +34,7 @@ namespace Exment {
         public static AddEvent() {
             CommonEvent.ToggleHelp();
             CommonEvent.addSelect2();
+            CommonEvent.addShowModalEvent();
             CommonEvent.addFieldEvent();
             CommonEvent.setFormFilter($('[data-filter]'));
             if (!$('#gridrow_select_disabled').val()) {
@@ -154,7 +155,9 @@ namespace Exment {
             }
         }
 
-
+        /**
+         * Show Modal Event
+         */
         public static ShowSwal(url: string, options?: any) {
             options = $.extend(
                 {
@@ -243,6 +246,39 @@ namespace Exment {
                 });
         }
 
+        public static addShowModalEvent(){
+            $('[data-add-swal]').not('.added-swal').each(function (index, elem: Element) {
+                $(elem).on('click', function (ev){
+                    let $target = $(ev.target).closest('[data-add-swal]');
+                    const keys = [
+                        'title',
+                        'text',
+                        'html',
+                        'type',
+                        'input',
+                        'confirm',
+                        'cancel',
+                        'method',
+                        'data',
+                        'redirect',
+                        'preConfirmValidate'
+                    ];
+                        
+                    let options = [];
+                    for(let i = 0; i < keys.length; i++){
+                        let value = $target.data('add-swal-' + keys[i]);
+                        if(!hasValue(value)){
+                            continue;
+                        }
+
+                        options[keys[i]] = value;
+                    }
+
+                    CommonEvent.ShowSwal($target.data('add-swal'), options);
+                });
+            }).addClass('added-swal');
+        } 
+
         /**
          * if click grid row, move page
          */
@@ -283,34 +319,6 @@ namespace Exment {
                 }
                 linkElem.closest('a').click();
             }).addClass('tableHoverLinkEvent');
-        }
-
-        /**
-        * Calc Date
-        */
-        private static calcDate = () => {
-            var $type = $('.subscription_claim_type');
-            var $start_date = $('.subscription_agreement_start_date');
-            var $term = $('.subscription_agreement_term');
-            var $end_date = $('.subscription_agreement_limit_date');
-            var term = pInt($term.val());
-            if (!$type.val() || !$start_date.val()) {
-                return;
-            }
-
-            // 日付計算
-            var dt = new Date($('.subscription_agreement_start_date').val() as string);
-            if ($type.val() == 'month') {
-                dt.setMonth(dt.getMonth() + term);
-            } else if ($type.val() == 'year') {
-                dt.setFullYear(dt.getFullYear() + term);
-            }
-            dt.setDate(dt.getDate() - 1);
-            // セット
-            $end_date.val(dt.getFullYear() + '-'
-                + ('00' + (dt.getMonth() + 1)).slice(-2)
-                + '-' + ('00' + dt.getDate()).slice(-2)
-            );
         }
 
         /**

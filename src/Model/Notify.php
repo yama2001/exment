@@ -244,8 +244,9 @@ class Notify extends ModelBase
                 });
         }
 
-        $users = $users->unique()->filter(function ($user) {
-            return \Exment::user()->base_user_id != $user->id;
+        $loginuser = \Exment::user();
+        $users = $users->unique()->filter(function ($user) use ($loginuser) {
+            return is_nullorempty($loginuser) || $loginuser->base_user_id != $user->id;
         });
 
         // convert as NotifyTarget
@@ -310,8 +311,8 @@ class Notify extends ModelBase
         $custom_view_id = array_get($this, 'custom_view_id');
         if (isset($custom_view_id)) {
             $custom_view = CustomView::getEloquent($custom_view_id);
-            return $custom_view->setValueFilters($custom_value->custom_table->getValueModel())
-                ->where('id', $custom_value->id)->exists();
+            $query = $custom_value->custom_table->getValueModel()->query();
+            return $custom_view->setValueFilters($query)->where('id', $custom_value->id)->exists();
         }
         return true;
     }
@@ -397,7 +398,7 @@ class Notify extends ModelBase
         $column = CustomColumn::getEloquent(array_get($this, 'trigger_settings.notify_target_column'));
 
         //ymd row
-        $raw = \DB::getQueryGrammar()->getDateFormatString(GroupCondition::YMD, 'value->'.$column->column_name, false, false);
+        $raw = \DB::getQueryGrammar()->getDateFormatString(GroupCondition::YMD, 'value->'.$column->column_name, false);
 
         // find data. where equal target_date
         if (isset($this->custom_view_id)) {
@@ -445,7 +446,8 @@ class Notify extends ModelBase
     protected function approvalSendUser($mail_template, $custom_table, $custom_value, NotifyTarget $user, $checkHistory = true)
     {
         // if $user is myself, return false
-        if ($checkHistory && \Exment::user()->email == $user->email()) {
+        $loginuser = \Exment::user();
+        if ($checkHistory && !is_nullorempty($loginuser) && $loginuser->email == $user->email()) {
             return false;
         }
 

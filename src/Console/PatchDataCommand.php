@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Console;
 
 use Illuminate\Console\Command;
+use Exceedone\Exment\Model;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomColumnMulti;
 use Exceedone\Exment\Model\CustomTable;
@@ -14,6 +15,7 @@ use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\Menu;
+use Exceedone\Exment\Enums;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\RoleType;
@@ -113,6 +115,12 @@ class PatchDataCommand extends Command
                 return;
             case 'parent_org_type':
                 $this->patchParentOrg();
+                return;
+            case 'remove_deleted_column':
+                $this->removeDeletedColumn();
+                return;
+            case 'remove_deleted_relation':
+                $this->removeDeletedRelation();
                 return;
         }
 
@@ -355,7 +363,7 @@ class PatchDataCommand extends Command
                 $view_column->custom_view_id = $aldata_view->id;
                 $view_column->view_column_target = array_get($custom_view_column, 'view_column_target');
                 $view_column->order = array_get($custom_view_column, 'order');
-                array_push($view_columns, $view_column);
+                $view_columns[] = $view_column;
             }
             $aldata_view->custom_view_columns()->saveMany($view_columns);
 
@@ -366,7 +374,7 @@ class PatchDataCommand extends Command
                 $view_sort->view_column_target = array_get($custom_view_sort, 'view_column_target');
                 $view_sort->sort = array_get($custom_view_sort, 'sort');
                 $view_sort->priority = array_get($custom_view_sort, 'priority');
-                array_push($view_sorts, $view_sort);
+                $view_sorts[] = $view_sort;
             }
             $aldata_view->custom_view_sorts()->saveMany($view_sorts);
         }
@@ -624,21 +632,92 @@ class PatchDataCommand extends Command
     }
 
     /**
+     * Remove already deleted relation
+     *
+     * @return void
+     */
+    protected function removeDeletedRelation()
+    {
+        $custom_form_blocks = Model\CustomFormBlock::where('form_block_type', '<>', Enums\FormBlockType::DEFAULT)->get();
+        foreach ($custom_form_blocks as $custom_form_block) {
+            $is_related = Model\CustomRelation::where('parent_custom_table_id', $custom_form_block->custom_form->custom_table_id)
+                ->where('child_custom_table_id', $custom_form_block->form_block_target_table_id)
+                ->exists();
+            if (!$is_related) {
+                $custom_form_block->delete();
+            }
+        }
+    }
+
+    /**
      * Patch org select_table to organization
      *
      * @return void
      */
     protected function patchParentOrg(){
         $parent_organization = CustomColumn::getEloquent('parent_organization', SystemTableName::ORGANIZATION);
-        if(!isset($parent_organization)){
+        if (!isset($parent_organization)) {
             return;
         }
 
-        if($parent_organization->column_type == ColumnType::ORGANIZATION){
+        if ($parent_organization->column_type == ColumnType::ORGANIZATION) {
             return;
         }
 
         $parent_organization->column_type = ColumnType::ORGANIZATION;
         $parent_organization->save();
+    }
+    
+    protected function removeDeletedColumn()
+    {
+        $classes = [
+            Model\CustomViewColumn::class => ['type' => 'view_column_type', 'column' => 'view_column_target_id', 'whereval' => Enums\ConditionType::COLUMN],
+            Model\CustomViewSort::class => ['type' => 'view_column_type', 'column' => 'view_column_target_id', 'whereval' => Enums\ConditionType::COLUMN],
+            Model\CustomViewFilter::class => ['type' => 'view_column_type', 'column' => 'view_column_target_id', 'whereval' => Enums\ConditionType::COLUMN],
+            Model\CustomViewSummary::class => ['type' => 'view_column_type', 'column' => 'view_column_target_id', 'whereval' => Enums\ConditionType::COLUMN],
+            Model\CustomOperationColumn::class => ['type' => 'view_column_type', 'column' => 'view_column_target_id', 'whereval' => Enums\ConditionType::COLUMN],
+            Model\Condition::class => ['type' => 'condition_type', 'column' => 'target_column_id', 'whereval' => Enums\ConditionType::COLUMN],
+            Model\CustomFormColumn::class => ['type' => 'form_column_type', 'column' => 'form_column_target_id', 'whereval' => Enums\FormColumnType::COLUMN],
+        ];
+
+        foreach ($classes as $class => $val) {
+            $items = $class::where($val['type'], $val['whereval'])
+                ->get();
+
+            foreach ($items as $item) {
+                $column_id = $item->{$val['column']};
+                if (!isset($column_id)) {
+                    continue;
+                }
+
+                $custom_column = CustomColumn::getEloquent($column_id);
+                if (isset($custom_column)) {
+                    continue;
+                }
+
+                $item->delete();
+            }
+        }
+
+
+        // remove custom_column_multisettings
+        $items = Model\CustomColumnMulti::all();
+        foreach ($items as $item) {
+            $keys = ['table_label_id', 'unique1_id', 'unique2_id', 'unique3_id'];
+
+            foreach ($keys as $key) {
+                $column_id = array_get($item, "options.$key");
+                if (!isset($column_id)) {
+                    continue;
+                }
+
+                $custom_column = CustomColumn::getEloquent($column_id);
+                if (isset($custom_column)) {
+                    continue;
+                }
+
+                $item->delete();
+            }
+        }
     }
 }

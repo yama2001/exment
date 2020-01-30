@@ -39,10 +39,12 @@ class BetweenDatetime extends Between
         }
 
         if (isset($this->group_condition)) {
+            // wraped
             $column = \DB::raw(\DB::getQueryGrammar()
-                ->getDateFormatString($this->group_condition, $this->column, false, false));
+                ->getDateFormatString($this->group_condition, $this->column, false));
         } else {
-            $column = $this->column;
+            // wrap
+            $column = \DB::getQueryGrammar()->wrap($this->column);
         }
 
         if (!isset($value['start'])) {
