@@ -50,6 +50,8 @@ class TestDataSeeder extends Seeder
 
         $this->createPermission($custom_tables);
 
+        $this->createRelationTables($users);
+
         $this->createApiSetting();
     }
 
@@ -69,6 +71,11 @@ class TestDataSeeder extends Seeder
 
     protected function createUserOrg()
     {
+        \Illuminate\Database\Eloquent\Relations\Relation::morphMap([
+            'user' => ltrim(getModelName('user', true), "\\"),
+            'organization' => ltrim(getModelName('organization', true), "\\"),
+        ]);
+
         // set users
         $values = $this->getUsersAndOrgs();
 
@@ -87,8 +94,13 @@ class TestDataSeeder extends Seeder
         $relationName = CustomRelation::getRelationNamebyTables('organization', 'user');
 
         foreach ($values as $type => $typevalue) {
+            $custom_table = CustomTable::getEloquent($type);
+            if(!isset($custom_table)){
+                continue;
+            }
+                
             foreach ($typevalue as $user_key => &$user) {
-                $model = CustomTable::getEloquent($type)->getValueModel();
+                $model = $custom_table->getValueModel();
                 foreach ($user['value'] as $key => $value) {
                     $model->setValue($key, $value);
                 }
@@ -123,6 +135,22 @@ class TestDataSeeder extends Seeder
         }
 
         return $values['user'];
+    }
+
+    protected function createRelationTables($users)
+    {
+        // 1:n table
+        $parent_table = $this->createTable('parent_table', $users, 1);
+        $this->createPermission([Permission::CUSTOM_VALUE_EDIT_ALL => $parent_table]);
+
+        $child_table = $this->createTable('child_table', [], 1);
+        $this->createPermission([Permission::CUSTOM_VALUE_EDIT_ALL => $child_table]);
+
+        $relation = new CustomRelation;
+        $relation->parent_custom_table_id = $parent_table->id;
+        $relation->child_custom_table_id = $child_table->id;
+        $relation->relation_type = 1;
+        $relation->save();
     }
 
     protected function createTables($users)
@@ -177,7 +205,7 @@ class TestDataSeeder extends Seeder
      * @param array $customTableOptions
      * @return void
      */
-    protected function createTable($keyName, $users, $menuParentId, $customTableOptions = [])
+    protected function createTable($keyName, $users, $menuParentId = null, $customTableOptions = [], $count = 10)
     {
         // create table
         $custom_table = new CustomTable;
@@ -185,6 +213,10 @@ class TestDataSeeder extends Seeder
         $custom_table->table_view_name = $keyName;
         $custom_table->options =  $customTableOptions;
         $custom_table->save();
+
+        \Illuminate\Database\Eloquent\Relations\Relation::morphMap([
+            $keyName => ltrim(getModelName($custom_table, true), "\\")
+        ]);
 
         $columns = [
             ['column_name' => 'text', 'column_view_name' => 'text', 'column_type' => ColumnType::TEXT, 'options' => ['required' => '1']],
@@ -256,7 +288,7 @@ class TestDataSeeder extends Seeder
 
             $id = array_get($user, 'id');
 
-            for ($i = 1; $i <= 10; $i++) {
+            for ($i = 1; $i <= $count; $i++) {
                 $custom_value = $custom_table->getValueModel();
                 $custom_value->setValue("text", 'test_'.$id);
                 $custom_value->setValue("user", $id);
