@@ -32,6 +32,7 @@ var Exment;
         static AddEvent() {
             CommonEvent.ToggleHelp();
             CommonEvent.addSelect2();
+            CommonEvent.addShowModalEvent();
             CommonEvent.addFieldEvent();
             CommonEvent.setFormFilter($('[data-filter]'));
             if (!$('#gridrow_select_disabled').val()) {
@@ -137,6 +138,9 @@ var Exment;
                 $.pjax.reload('#pjax-container');
             }
         }
+        /**
+         * Show Modal Event
+         */
         static ShowSwal(url, options) {
             options = $.extend({
                 title: 'Swal',
@@ -218,6 +222,35 @@ var Exment;
                     swal(data, '', 'error');
                 }
             });
+        }
+        static addShowModalEvent() {
+            $('[data-add-swal]').not('.added-swal').each(function (index, elem) {
+                $(elem).on('click', function (ev) {
+                    let $target = $(ev.target).closest('[data-add-swal]');
+                    const keys = [
+                        'title',
+                        'text',
+                        'html',
+                        'type',
+                        'input',
+                        'confirm',
+                        'cancel',
+                        'method',
+                        'data',
+                        'redirect',
+                        'preConfirmValidate'
+                    ];
+                    let options = [];
+                    for (let i = 0; i < keys.length; i++) {
+                        let value = $target.data('add-swal-' + keys[i]);
+                        if (!hasValue(value)) {
+                            continue;
+                        }
+                        options[keys[i]] = value;
+                    }
+                    CommonEvent.ShowSwal($target.data('add-swal'), options);
+                });
+            }).addClass('added-swal');
         }
         /**
          * if click grid row, move page

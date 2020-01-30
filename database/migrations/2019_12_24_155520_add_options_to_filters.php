@@ -25,7 +25,18 @@ class AddOptionsToFilters extends Migration
                 $table->json('options')->nullable()->after('order');
             });
         }
-        
+
+        if(Schema::hasTable('revisions')){
+            Schema::table('revisions', function (Blueprint $table) {
+                if(!Schema::hasColumn('revisions', 'deleted_at')){
+                    $table->timestamp('deleted_at', 0)->nullable()->after('updated_at');
+                }
+                if(!Schema::hasColumn('revisions', 'delete_user_id')){
+                    $table->unsignedInteger('delete_user_id', 0)->nullable()->after('create_user_id');
+                }
+            });
+        }
+
         \Artisan::call('exment:patchdata', ['action' => 'parent_org_type']);
     }
 
@@ -37,10 +48,22 @@ class AddOptionsToFilters extends Migration
     public function down()
     {
         Schema::table('workflow_condition_headers', function($table) {
-            $table->dropColumn('options');
+            if (Schema::hasColumn('workflow_condition_headers', 'options')) {
+                $table->dropColumn('options');
+            }
         });
         Schema::table('custom_form_priorities', function($table) {
-            $table->dropColumn('options');
+            if (Schema::hasColumn('custom_form_priorities', 'options')) {
+                $table->dropColumn('options');
+            }
+        });
+        Schema::table('revisions', function($table) {
+            if (Schema::hasColumn('revisions', 'deleted_at')) {
+                $table->dropColumn('deleted_at');
+            }
+            if (Schema::hasColumn('revisions', 'delete_user_id')) {
+                $table->dropColumn('delete_user_id');
+            }
         });
     }
 }
