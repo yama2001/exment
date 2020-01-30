@@ -382,7 +382,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      * @param string $column_name_prefix if not null, add column prefix name key.
      * @return mixed
      */
-    public function validateValue($value, $systemColumn = false, $custom_value_id = null, $column_name_prefix = null, $appendKeyName = true)
+    public function validateValue($value, $systemColumn = false, $custom_value_id = null, $column_name_prefix = null, $appendKeyName = true, $checkCustomValueExists = true)
     {
         // get fields for validation
         $rules = [];
@@ -403,10 +403,16 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         
         // create parent type validation array
         if ($systemColumn) {
-            $custom_relation_parent = CustomRelation::getRelationByChild($this->custom_table, RelationType::ONE_TO_MANY);
+            $custom_relation_parent = CustomRelation::getRelationByChild($this, RelationType::ONE_TO_MANY);
             $custom_table_parent = ($custom_relation_parent ? $custom_relation_parent->parent_custom_table : null);
             
-            $parent_id_rules = isset($custom_table_parent) ? ['nullable', 'numeric', new CustomValueRule($custom_table_parent)] : [new EmptyRule];
+            if (!isset($custom_table_parent)) {
+                $parent_id_rules = [new EmptyRule];
+            } elseif (!$checkCustomValueExists) {
+                $parent_id_rules = ['nullable', 'numeric'];
+            } else {
+                $parent_id_rules = ['nullable', 'numeric', new CustomValueRule($custom_table_parent)];
+            }
             $parent_type_rules = isset($custom_table_parent) ? ['nullable', "in:". $custom_table_parent->table_name] : [new EmptyRule];
     
             // create common validate rules.
@@ -444,13 +450,14 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     /**
      * get validation custom attribute
      */
-    public function getValidateCustomAttributes($systemColumn = false, $column_name_prefix = null, $appendKeyName = true){
+    public function getValidateCustomAttributes($systemColumn = false, $column_name_prefix = null, $appendKeyName = true)
+    {
         $customAttributes = [];
 
         foreach ($this->custom_columns as $custom_column) {
             $customAttributes[$column_name_prefix . $custom_column->column_name] = "{$custom_column->column_view_name}" . ($appendKeyName ? "({$custom_column->column_name})" : "");
 
-            if($systemColumn){
+            if ($systemColumn) {
                 $rules = [
                     'id',
                     'parent_id',
@@ -463,7 +470,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                     
                 foreach ($rules as $key => $rule) {
                     $customAttributes[$key] = exmtrans("common.$key") . ($appendKeyName ? "($key)" : "");
-                } 
+                }
             }
         }
         
@@ -2006,6 +2013,19 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         return true;
     }
 
+    /**
+     * User can show trashed value
+     *
+     * @return void
+     */
+    public function enableShowTrashed()
+    {
+        if (!$this->hasPermission([Permission::CUSTOM_TABLE, Permission::CUSTOM_VALUE_VIEW_TRASHED])) {
+            return ErrorCode::PERMISSION_DENY();
+        }
+
+        return true;
+    }
     /**
      *
      */
