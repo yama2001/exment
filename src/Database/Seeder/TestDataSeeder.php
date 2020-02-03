@@ -46,11 +46,13 @@ class TestDataSeeder extends Seeder
 
         $users = $this->createUserOrg();
        
-        $custom_tables = $this->createTables($users);
+        $menu = $this->createMenu();
+
+        $custom_tables = $this->createTables($users, $menu);
 
         $this->createPermission($custom_tables);
 
-        $this->createRelationTables($users);
+        $this->createRelationTables($users, $menu);
 
         $this->createApiSetting();
     }
@@ -137,13 +139,13 @@ class TestDataSeeder extends Seeder
         return $values['user'];
     }
 
-    protected function createRelationTables($users)
+    protected function createRelationTables($users, $menu)
     {
         // 1:n table
-        $parent_table = $this->createTable('parent_table', $users, 1, [], 1);
+        $parent_table = $this->createTable('parent_table', $users, $menu->id, [], 1);
         $this->createPermission([Permission::CUSTOM_VALUE_EDIT_ALL => $parent_table]);
 
-        $child_table = $this->createTable('child_table', [], 1);
+        $child_table = $this->createTable('child_table', [], $menu->id);
         $this->createPermission([Permission::CUSTOM_VALUE_EDIT_ALL => $child_table]);
 
         $relation = new CustomRelation;
@@ -153,8 +155,7 @@ class TestDataSeeder extends Seeder
         $relation->save();
     }
 
-    protected function createTables($users)
-    {
+    protected function createMenu(){
         // create parent id
         $menu = Menu::create([
             'parent_id' => 0,
@@ -167,7 +168,11 @@ class TestDataSeeder extends Seeder
             'menu_target' => null,
         ]);
 
+        return $menu;
+    }
 
+    protected function createTables($users, $menu)
+    {
         // create test table
         $permissions = [
             Permission::CUSTOM_VALUE_EDIT_ALL,
